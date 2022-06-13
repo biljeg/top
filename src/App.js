@@ -1,13 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import GlobalStyle from "./components/styles/GlobalStyles"
-import Home from "./pages/home"
-import Campgrounds from "./pages/destinations"
-import BlogPage from "./pages/blogPage"
+import Store from "./pages/store"
+import News from "./pages/news"
 import About from "./pages/about"
 import Header from "./components/header"
-import Blog from "./components/blog/Blog.component"
-import Campground from "./components/destination"
+import NewsPost from "./components/newsPost"
 import NotFound from "./components/notFound"
+import Help from "./pages/help"
 import { QueryClient, QueryClientProvider } from "react-query"
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -24,12 +23,11 @@ function App() {
 				<GlobalStyle />
 				<Header />
 				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route path="/destinations" element={<Campgrounds />} />
-					<Route path="/destinations/:destinationId" element={<Campground />} />
-					<Route path="/blog" element={<BlogPage />} />
-					<Route path="/blog/:slug" element={<Blog />} />
+					<Route path="/" element={<Store />} />
+					<Route path="/news" element={<News />} />
+					<Route path="/news/:slug" element={<NewsPost />} />
 					<Route path="/about" element={<About />} />
+					<Route path="/help" element={<Help />} />
 					<Route path="*" element={<NotFound />} />
 				</Routes>
 			</Router>

@@ -1,21 +1,21 @@
 import styled from "styled-components/macro"
 import { useState, useEffect } from "react"
 import { useQuery } from "react-query"
-import { LoadingScreen } from "../../components/utils"
+import { LoadingScreen } from "../utils"
 import { getRelatedPosts, getSinglePost } from "../../hooks/contentful"
 import { useParams } from "react-router-dom"
 import MD from "react-markdown"
-import BlogCard from "../blogCard"
+import NewsCard from "../newsCard"
 
-const Blog = () => {
+const NewsPost = () => {
 	const [post, setPost] = useState({})
 	const [relatedPosts, setRelatedPosts] = useState([])
 	const [category, setCategory] = useState("")
 	const { slug } = useParams()
-	const { data, isLoading, isError } = useQuery(["blog", slug], () =>
+	const { data, isLoading, isError } = useQuery(["newsPost", slug], () =>
 		getSinglePost(slug)
 	)
-	const { data: relatedPostsData } = useQuery(["blog", category], () =>
+	const { data: relatedPostsData } = useQuery(["relatedPosts", category], () =>
 		getRelatedPosts(category)
 	)
 	useEffect(() => {
@@ -62,7 +62,7 @@ const Blog = () => {
 						{relatedPosts.map(relatedPost => {
 							const { title, slug } = relatedPost
 							return (
-								<BlogCard key={title} slug={slug} title={title} relatedPost />
+								<NewsCard key={title} slug={slug} title={title} relatedPost />
 							)
 						})}
 					</RelatedPostContainer>
@@ -72,7 +72,7 @@ const Blog = () => {
 	)
 }
 
-export default Blog
+export default NewsPost
 
 const RelatedPostContainer = styled.div`
 	display: flex;

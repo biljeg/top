@@ -3,7 +3,7 @@ const client = require("contentful").createClient({
 	accessToken: "SoXxEb_CYhR9B4A4bpEZzXTnLuepRfI6HrF2xQsNyAk",
 })
 
-const getBlogPosts = async filters => {
+const getNewsPosts = async filters => {
 	const filtersArr = []
 	filters.forEach(item => {
 		if (item.selected) filtersArr.push(item.name)
@@ -53,4 +53,4 @@ const getPopularPosts = async () => {
 	return data
 }
 
-export { getBlogPosts, getSinglePost, getPopularPosts, getRelatedPosts }
+export { getNewsPosts, getSinglePost, getPopularPosts, getRelatedPosts }

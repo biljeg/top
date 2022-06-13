@@ -1,13 +1,13 @@
 import styled from "styled-components/macro"
 import { useState, useEffect } from "react"
 import { useQuery } from "react-query"
-import BlogCard from "../../components/blogCard"
+import BlogCard from "../../components/newsCard"
 import { LoadingScreen } from "../../components/utils"
-import { getBlogPosts, getPopularPosts } from "../../hooks/contentful"
-import { fetchDetails, fetchSearch } from "../../apiTest"
+import NewsCard from "../../components/newsCard"
+import { getNewsPosts, getPopularPosts } from "../../hooks/contentful"
 
-const Blogs = () => {
-	const [blogs, setBlogs] = useState([])
+const News = () => {
+	const [newsPosts, setNewsPosts] = useState([])
 	const [popularPosts, setPopularPosts] = useState([])
 	const [filters, setFilters] = useState([
 		{ name: "footwear", selected: false },
@@ -23,8 +23,8 @@ const Blogs = () => {
 		"Collectibles",
 		"Our news",
 	]
-	const { data, isLoading, isError } = useQuery(["blogs", filters], () =>
-		getBlogPosts(filters)
+	const { data, isLoading, isError } = useQuery(["newsPosts", filters], () =>
+		getNewsPosts(filters)
 	)
 	const { data: popularPostsData } = useQuery("popularPosts", getPopularPosts)
 	useEffect(() => {
@@ -33,7 +33,7 @@ const Blogs = () => {
 		data.forEach(item => {
 			fieldData.push(item.fields)
 		})
-		setBlogs(fieldData)
+		setNewsPosts(fieldData)
 	}, [data])
 	useEffect(() => {
 		if (!popularPostsData) return
@@ -68,10 +68,10 @@ const Blogs = () => {
 	return (
 		<>
 			<h1>Latest blog posts</h1>
-			<BlogPageWrapper>
+			<NewsPageWrapper>
 				<main>
-					{blogs.length !== 0 ? (
-						blogs.map(blog => {
+					{newsPosts.length !== 0 ? (
+						newsPosts.map(blog => {
 							const {
 								title,
 								slug,
@@ -83,7 +83,7 @@ const Blogs = () => {
 							} = blog
 							const readTime = Math.round(content.split(" ").length / 275)
 							return (
-								<BlogCard
+								<NewsCard
 									key={title}
 									slug={slug}
 									title={title}
@@ -129,14 +129,14 @@ const Blogs = () => {
 						</div>
 					)}
 				</aside>
-			</BlogPageWrapper>
+			</NewsPageWrapper>
 		</>
 	)
 }
 
-export default Blogs
+export default News
 
-const BlogPageWrapper = styled.div`
+const NewsPageWrapper = styled.div`
 	display: flex;
 `
 const FilterContainer = styled.div`

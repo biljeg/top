@@ -1,7 +1,7 @@
 import styled from "styled-components/macro"
 import { Link } from "react-router-dom"
 
-const BlogCard = ({
+const NewsCard = ({
 	thumbnail,
 	postDate,
 	category,
@@ -28,7 +28,7 @@ const BlogCard = ({
 
 	return (
 		<Link to={slug}>
-			<DestinationCardWrapper>
+			<NewsCardWrapper>
 				<div>
 					<div>
 						<img src={thumbnail} alt={title} />
@@ -42,14 +42,14 @@ const BlogCard = ({
 					</div>
 					{readTime > 1 ? <p>{readTime} Minute Read</p> : <p>1 Minute Read</p>}
 				</div>
-			</DestinationCardWrapper>
+			</NewsCardWrapper>
 		</Link>
 	)
 }
 
-export default BlogCard
+export default NewsCard
 
-const DestinationCardWrapper = styled.article`
+const NewsCardWrapper = styled.article`
 	display: flex;
 	flex-direction: column;
 `

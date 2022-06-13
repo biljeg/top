@@ -7,16 +7,20 @@ const Header = () => {
 			<Navbar>
 				<ul>
 					<li>
-						<NavLink to={"/"}>Home</NavLink>
+						<NavLink to={"/"}>Home (logo)</NavLink>
 					</li>
 					<li>
-						<NavLink to={"/destinations"}>Destinations</NavLink>
+						<NavLink to={"/news"}>News</NavLink>
 					</li>
 					<li>
-						<NavLink to={"/blog"}>Our blog</NavLink>
+						<NavLink to={"/about"}>About</NavLink>
 					</li>
 					<li>
-						<NavLink to={"/about"}>About us</NavLink>
+						<NavLink to={"/help"}>Help</NavLink>
+					</li>
+					<div>Cart</div>
+					<li>
+						<NavLink to={"/profile"}>Profile</NavLink>
 					</li>
 				</ul>
 			</Navbar>

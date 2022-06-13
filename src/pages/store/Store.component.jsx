@@ -1,7 +1,7 @@
 import styled from "styled-components/macro"
 import { Link } from "react-router-dom"
 
-const Home = () => {
+const Store = () => {
 	return (
 		<main>
 			<section>d</section>
@@ -12,4 +12,4 @@ const Home = () => {
 	)
 }
 
-export default Home
+export default Store
