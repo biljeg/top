@@ -1,7 +1,6 @@
 import styled from "styled-components/macro"
 import { useState, useEffect } from "react"
 import { useQuery } from "react-query"
-import BlogCard from "../../components/newsCard"
 import { LoadingScreen } from "../../components/utils"
 import NewsCard from "../../components/newsCard"
 import { getNewsPosts, getPopularPosts } from "../../hooks/contentful"
@@ -27,6 +26,9 @@ const News = () => {
 		getNewsPosts(filters)
 	)
 	const { data: popularPostsData } = useQuery("popularPosts", getPopularPosts)
+	//THIS IS VERY WRONG, WE DO NOT EVEN NEED TO SET IT AS STATE BECAUSE WE DON'T NEED
+	//TO DO ANYTHING TO IT
+	//JUST MAP OVER THE DATA AND POPULAR POSTS DATA
 	useEffect(() => {
 		if (!data) return
 		const fieldData = []
@@ -44,6 +46,8 @@ const News = () => {
 		setPopularPosts(fieldData)
 	}, [popularPostsData])
 
+	//you can write a test for handleFilterClick to make sure
+	//it always gets the right filterCategory
 	const handleFilterClick = filterCategory => {
 		setFilters(prevFilters =>
 			prevFilters.map(item => {
@@ -71,8 +75,8 @@ const News = () => {
 			<NewsPageWrapper>
 				<main>
 					{newsPosts.length !== 0 ? (
-						newsPosts.map(blog => {
-							const {
+						newsPosts.map(
+							({
 								title,
 								slug,
 								preview,
@@ -80,21 +84,22 @@ const News = () => {
 								category,
 								postDate,
 								content,
-							} = blog
-							const readTime = Math.round(content.split(" ").length / 275)
-							return (
-								<NewsCard
-									key={title}
-									slug={slug}
-									title={title}
-									postDate={postDate}
-									preview={preview}
-									category={category}
-									thumbnail={`https:${thumbnail.fields.file.url}`}
-									readTime={readTime}
-								/>
-							)
-						})
+							}) => {
+								const readTime = Math.round(content.split(" ").length / 275)
+								return (
+									<NewsCard
+										key={title}
+										slug={slug}
+										title={title}
+										postDate={postDate}
+										preview={preview}
+										category={category}
+										thumbnail={`https:${thumbnail.fields.file.url}`}
+										readTime={readTime}
+									/>
+								)
+							}
+						)
 					) : (
 						<div>NO RESULTS</div>
 					)}
@@ -120,10 +125,9 @@ const News = () => {
 						<div>
 							<h2>Popular posts</h2>
 
-							{popularPosts.map(popularPost => {
-								const { title, slug } = popularPost
+							{popularPosts.map(({ title, slug }) => {
 								return (
-									<BlogCard key={title} slug={slug} title={title} popularPost />
+									<NewsCard key={title} slug={slug} title={title} popularPost />
 								)
 							})}
 						</div>

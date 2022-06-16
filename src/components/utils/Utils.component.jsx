@@ -1,10 +1,10 @@
-import { TailSpin } from "react-loading-icons"
+import { TailSpin } from "react-loader-spinner"
 import styled from "styled-components/macro"
 
 export const LoadingScreen = () => {
 	return (
 		<LoadingScreenWrapper>
-			<TailSpin stroke="#000" />
+			<TailSpin color="#000" height={80} width={80} />
 		</LoadingScreenWrapper>
 	)
 }

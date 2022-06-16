@@ -1,1 +1,1 @@
-export { LoadingScreen } from "./Utils.component"
+export * from "./Utils.component"

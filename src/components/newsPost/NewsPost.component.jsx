@@ -18,11 +18,15 @@ const NewsPost = () => {
 	const { data: relatedPostsData } = useQuery(["relatedPosts", category], () =>
 		getRelatedPosts(category)
 	)
+
+	//write a test for this function to test what happens if there is no tags
+	//and what happens if there no tags besides popular
+	//also make a smoother way to set the category
 	useEffect(() => {
 		if (!data) return
 		setPost(data.fields)
 		const getCategory = () => {
-			let category = data.metadata?.tags.find(item => item.sys.id !== "popular")
+			let category = data.metadata.tags?.find(item => item.sys.id !== "popular")
 				?.sys?.id
 			if (!category) category = ""
 			return category
@@ -46,9 +50,7 @@ const NewsPost = () => {
 			<div>
 				<h2>{post.title}</h2>
 
-				{post.thumbnail && (
-					<img src={post.thumbnail.fields.file.url} alt={post.title} />
-				)}
+				<img src={post.thumbnail?.fields.file.url} alt={post.title} />
 			</div>
 
 			<div>
@@ -59,8 +61,7 @@ const NewsPost = () => {
 				<div>
 					<h2>Related posts</h2>
 					<RelatedPostContainer>
-						{relatedPosts.map(relatedPost => {
-							const { title, slug } = relatedPost
+						{relatedPosts.map(({ title, slug }) => {
 							return (
 								<NewsCard key={title} slug={slug} title={title} relatedPost />
 							)
