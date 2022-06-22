@@ -1,16 +1,17 @@
 import styled from "styled-components/macro"
 import { useState, useEffect } from "react"
 import { useQuery } from "react-query"
-import { LoadingScreen } from "../utils"
-import { getRelatedPosts, getSinglePost } from "../../hooks/contentful"
+import { LoadingScreen } from "../../components/utils"
 import { useParams } from "react-router-dom"
 import MD from "react-markdown"
-import NewsCard from "../newsCard"
+import { getRelatedPosts, getSinglePost } from "../../hooks/contentful"
+import NewsCard from "../../components/newsCard"
 
 const NewsPost = () => {
 	const [post, setPost] = useState({})
 	const [relatedPosts, setRelatedPosts] = useState([])
 	const [category, setCategory] = useState("")
+	//STATE IS UNNEEDED
 	const { slug } = useParams()
 	const { data, isLoading, isError } = useQuery(["newsPost", slug], () =>
 		getSinglePost(slug)
