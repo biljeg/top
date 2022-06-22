@@ -6,6 +6,7 @@ const Footer = () => {
 	const location = useLocation()
 	if (location.pathname === "/profile") return null
 	if (location.pathname === "/sneakers") return null
+	if (location.pathname === "/login") return null
 
 	return (
 		<FooterWrapper>

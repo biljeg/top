@@ -24,7 +24,7 @@ const routing = {
 	},
 }
 
-const SearchBar = () => {
+const SearchBar = ({ isMobile, setIsMobileSearch }) => {
 	return (
 		<>
 			<InstantSearch
@@ -32,7 +32,7 @@ const SearchBar = () => {
 				searchClient={searchClient}
 				routing={routing}
 			>
-				<SearchBox />
+				<SearchBox isMobile={isMobile} setIsMobileSearch={setIsMobileSearch} />
 			</InstantSearch>
 		</>
 	)

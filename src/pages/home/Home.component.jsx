@@ -38,29 +38,29 @@ const Home = () => {
 		return filteredData.filter(item => item !== undefined)
 	}
 	return (
-		<main>
-			<div>
+		<Main>
+			<CarouselContainer>
 				<div>
 					<h3>Most Popular</h3>
 					<Link to="/sneakers">See all shoes</Link>
 				</div>
 				<Carousel items={popularShoes()} />
-			</div>
-			<div>
+			</CarouselContainer>
+			<CarouselContainer>
 				<div>
 					<h3>Jordan 1</h3>
 					<Link to="/sneakers">See all Jordan 1</Link>
 				</div>
 				<Carousel items={filterItems("Air Jordan One")} />
-			</div>
-			<div>
+			</CarouselContainer>
+			<CarouselContainer>
 				<div>
 					<h3>Adidas Yeezy</h3>
 					<Link to="/sneakers">See all Adidas Yeezy shoes</Link>
 				</div>
 				<Carousel items={filterItems("adidas Yeezy")} />
-			</div>
-			<div>
+			</CarouselContainer>
+			<CarouselContainer>
 				<div>
 					<h3>Air max</h3>
 					<Link to="/sneakers">See all Air max shoes</Link>
@@ -70,7 +70,7 @@ const Home = () => {
 						data && data.filter(item => item.category.indexOf("Max") !== -1)
 					}
 				/>
-			</div>
+			</CarouselContainer>
 			{/* <div>
 				<div>dunk?
 					<h3></h3>
@@ -80,8 +80,18 @@ const Home = () => {
 				</div>
 				<Carousel>z</Carousel>
 			</div> */}
-		</main>
+		</Main>
 	)
 }
 
 export default Home
+
+const Main = styled.main`
+	overflow: hidden;
+	max-width: 100%;
+`
+
+const CarouselContainer = styled.div`
+	overflow: hidden;
+	max-width: 100%;
+`

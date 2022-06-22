@@ -12,7 +12,7 @@ const DeleteModal = ({ isOpened, setIsOpened, action }) => {
 	}
 	return createPortal(
 		<>
-			<Overlay></Overlay>
+			<Overlay />
 			<Modal>
 				<h4>Are you sure you want to delete your account?</h4>
 				<Button onClick={executeAction}>Yes</Button>
@@ -32,7 +32,7 @@ const Modal = styled.div`
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	background-color: $white;
+	background-color: white;
 	border-radius: 20px;
 	z-index: 3;
 `
