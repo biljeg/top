@@ -1,12 +1,14 @@
 import styled from "styled-components/macro"
 import { useState, useContext, useEffect } from "react"
 import { Button } from "@mantine/core"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import LoginForm from "../../components/loginForm"
 import { AppContext } from "../../hooks/AppContext"
 
 const Login = () => {
-	const [isLoginPage, setIsLoginPage] = useState(true)
+	const location = useLocation()
+	const mode = location.state?.isLoginPage
+	const [isLoginPage, setIsLoginPage] = useState(mode)
 	const [googleLoading, setGoogleLoading] = useState(false)
 	const { googleSignIn, logIn, signUp, isLoggedIn } = useContext(AppContext)
 	const navigate = useNavigate()

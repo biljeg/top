@@ -49,21 +49,27 @@ const Home = () => {
 			<CarouselContainer>
 				<div>
 					<h3>Jordan 1</h3>
-					<Link to="/sneakers">See all Jordan 1</Link>
+					<Link to="/sneakers" state={{ urlQuery: "Jordan 1" }}>
+						See all Jordan 1
+					</Link>
 				</div>
 				<Carousel items={filterItems("Air Jordan One")} />
 			</CarouselContainer>
 			<CarouselContainer>
 				<div>
 					<h3>Adidas Yeezy</h3>
-					<Link to="/sneakers">See all Adidas Yeezy shoes</Link>
+					<Link to="/sneakers" state={{ urlQuery: "Yeezy" }}>
+						See all Adidas Yeezy shoes
+					</Link>
 				</div>
 				<Carousel items={filterItems("adidas Yeezy")} />
 			</CarouselContainer>
 			<CarouselContainer>
 				<div>
 					<h3>Air max</h3>
-					<Link to="/sneakers">See all Air max shoes</Link>
+					<Link to="/sneakers" state={{ urlQuery: "Air max" }}>
+						See all Air max shoes
+					</Link>
 				</div>
 				<Carousel
 					items={
@@ -71,15 +77,15 @@ const Home = () => {
 					}
 				/>
 			</CarouselContainer>
-			{/* <div>
-				<div>dunk?
-					<h3></h3>
-					<Link >
-						See all shoes
+			<div>
+				<div>
+					<h3>Nike Dunk</h3>
+					<Link to="/sneakers" state={{ urlQuery: "Dunk" }}>
+						See all Nike Dunk shoes
 					</Link>
 				</div>
-				<Carousel>z</Carousel>
-			</div> */}
+				<Carousel items={filterItems("Nike Dunk")} />
+			</div>
 		</Main>
 	)
 }

@@ -1,30 +1,39 @@
-import { Link, useParams } from "react-router-dom"
+import { Link } from "react-router-dom"
 import styled from "styled-components/macro"
 
-const ProductCard = ({
-	smallImageUrl,
-	title,
-	lowestAskUSD,
-	lowestAskGBP,
-	lowestAskEUR,
-	condition,
-	urlKey,
-}) => {
+const ProductCard = ({ title, market, media, urlKey, condition }) => {
 	return (
-		<Link to={`/sneakers/${urlKey}`}>
-			<div>
+		<StyledLink to={`/sneakers/${urlKey}`}>
+			<ProductCardWrapper>
 				<div>
-					<img src={smallImageUrl} alt={title} />
+					<img src={media.thumbUrl} alt={title} />
 				</div>
-				<div>
-					<h4>{title}</h4>
-					{/* lowest ask should be dependent on the currency */}
-					<p>${lowestAskUSD}</p>
+				<Description>
+					<h3>{title}</h3>
+					<p>{market.lastSale}</p>
 					<p>{condition}</p>
-				</div>
-			</div>
-		</Link>
+				</Description>
+			</ProductCardWrapper>
+		</StyledLink>
 	)
 }
 
 export default ProductCard
+
+const ProductCardWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+`
+
+const Description = styled.div`
+	display: flex;
+	flex-direction: column;
+`
+
+const StyledLink = styled(Link)`
+	border-top: 1px solid black;
+	border-right: 1px solid black;
+	&:nth-last-child(-n + 4) {
+		border-bottom: 1px solid black;
+	}
+`

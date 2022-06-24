@@ -1,12 +1,12 @@
 import styled from "styled-components/macro"
-import ProductCard from "../productCard"
+import CarouselCard from "../carouselCard"
 
 const Carousel = ({ items }) => {
 	if (!items) return
 	return (
 		<CarouselWrapper>
 			{items.map(item => (
-				<ProductCard
+				<CarouselCard
 					title={item.title}
 					lowestAskUSD={item.sizes[9].lowestAskUSD}
 					lowestAskEUR={item.sizes[9].lowestAskEUR}

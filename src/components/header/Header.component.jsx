@@ -8,6 +8,8 @@ import List from "../../assets/icons/list.svg"
 import Search from "../../assets/icons/search.svg"
 import Close from "../../assets/icons/x-lg.svg"
 import MobileMenu from "../mobileMenu/MobileMenu.component"
+import { searchClient } from "../../hooks/algolia"
+import { Configure, InstantSearch } from "react-instantsearch-hooks-web"
 
 const Header = () => {
 	const location = useLocation()
@@ -15,6 +17,7 @@ const Header = () => {
 	const { isLoggedIn } = useContext(AppContext)
 	const [isMobileMenu, setIsMobileMenu] = useState(false)
 	const [isMobileSearch, setIsMobileSearch] = useState(false)
+
 	if (currentPath === "/login") {
 		return (
 			<HeaderLogin>
@@ -33,35 +36,42 @@ const Header = () => {
 			<HeaderDesktop>
 				<NavbarDesktop>
 					<div>
-						<div>
-							<NavLink to={"/"}>
-								<LogoContainer>
-									<img src={Logo} />
-								</LogoContainer>
-							</NavLink>
-						</div>
+						<NavLink to={"/"}>
+							<LogoContainer>
+								<img src={Logo} />
+							</LogoContainer>
+						</NavLink>
 					</div>
-					<div>{!(currentPath === "/sneakers") && <SearchBar />}</div>
+					<div>
+						{!(currentPath === "/sneakers") && (
+							<InstantSearch indexName="sneakers" searchClient={searchClient}>
+								<SearchBar />
+								<Configure hitsPerPage={8} />
+							</InstantSearch>
+						)}
+					</div>
 					<MenuDesktop>
 						<div>
 							<NavLink to={"/sneakers"}>Sneakers</NavLink>
 						</div>
-						{currentPath !== "/profile" ? (
-							isLoggedIn ? (
+						{isLoggedIn ? (
+							<div>
+								<NavLink to={"/profile"}>Profile</NavLink>
+							</div>
+						) : (
+							<>
 								<div>
-									<NavLink to={"/profile"}>Profile</NavLink>
+									<NavLink to={"/login"} state={{ isLoginPage: true }}>
+										Login
+									</NavLink>
 								</div>
-							) : (
-								<>
-									<div>
-										<NavLink to={"/login"}>login</NavLink>
-									</div>
-									<div>
-										<NavLink to={"/login"}>Sign up</NavLink>
-									</div>
-								</>
-							)
-						) : null}
+								<div>
+									<NavLink to={"/login"} state={{ isLoginPage: false }}>
+										Sign up
+									</NavLink>
+								</div>
+							</>
+						)}
 					</MenuDesktop>
 				</NavbarDesktop>
 			</HeaderDesktop>
@@ -69,10 +79,13 @@ const Header = () => {
 				<NavbarMobile>
 					{isMobileSearch ? (
 						<>
-							<SearchBar
-								isMobile={true}
-								setIsMobileSearch={setIsMobileSearch}
-							/>
+							<InstantSearch indexName="sneakers" searchClient={searchClient}>
+								<SearchBar
+									isMobile={true}
+									setIsMobileSearch={setIsMobileSearch}
+								/>
+								<Configure hitsPerPage={8} />
+							</InstantSearch>
 							<IconContainer>
 								<CloseIcon
 									src={Close}

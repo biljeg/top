@@ -20,9 +20,11 @@ const AppContextProvider = ({ children }) => {
 		user: null,
 		isLoggedIn: false,
 	})
+	//update preferences so it is an object with rate
+	//update all the places where it is needed to show dynamic price
 	const [loginError, setLoginError] = useState({ component: "", message: "" })
 	const [preferences, setPreferences] = useState({
-		currency: "USD",
+		currency: { name: "USD", rate: 1, symbol: "$" },
 		country: "United States",
 	})
 	const ref = useRef(false)
@@ -92,6 +94,14 @@ const AppContextProvider = ({ children }) => {
 		}
 	}
 
+	Storage.prototype.setObject = function (key, value) {
+		this.setItem(key, JSON.stringify(value))
+	}
+	Storage.prototype.getObject = function (key) {
+		const value = this.getItem(key)
+		return value && JSON.parse(value)
+	}
+
 	useEffect(() => {
 		onAuthStateChanged(auth, user => {
 			if (user) {
@@ -104,14 +114,14 @@ const AppContextProvider = ({ children }) => {
 	useEffect(() => {
 		if (ref.current) {
 			localStorage.setItem("country", preferences.country)
-			localStorage.setItem("currency", preferences.currency)
+			localStorage.setObject("currency", preferences.currency)
 		} else {
 			ref.current = true
 			const savedCountry = localStorage.getItem("country")
-			const savedCurrency = localStorage.getItem("currency")
+			const savedCurrency = localStorage.getObject("currency")
 			if (!savedCountry || !savedCurrency) {
 				localStorage.setItem("country", preferences.country)
-				localStorage.setItem("currency", preferences.currency)
+				localStorage.setObject("currency", preferences.currency)
 			} else {
 				setPreferences({ country: savedCountry, currency: savedCurrency })
 			}

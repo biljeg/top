@@ -9,7 +9,6 @@ const MobileMenu = ({ isMobileMenu, setIsMobileMenu }) => {
 	const { isLoggedIn } = useContext(AppContext)
 	const location = useLocation()
 	const currentPath = location.pathname
-
 	if (!isMobileMenu) return
 
 	return createPortal(
@@ -31,10 +30,14 @@ const MobileMenu = ({ isMobileMenu, setIsMobileMenu }) => {
 						) : (
 							<>
 								<div>
-									<NavLink to={"/login"}>login</NavLink>
+									<NavLink to={"/login"} state={{ isLoginPage: true }}>
+										Login
+									</NavLink>
 								</div>
 								<div>
-									<NavLink to={"/login"}>Sign up</NavLink>
+									<NavLink to={"/login"} state={{ isLoginPage: false }}>
+										Sign up
+									</NavLink>
 								</div>
 							</>
 						)
