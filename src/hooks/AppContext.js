@@ -14,6 +14,11 @@ import { getProfileData, createUserDoc, logOut } from "./auth"
 
 const auth = getAuth()
 export const AppContext = createContext()
+export const currencyList = [
+	{ name: "USD", rate: 1, symbol: "$" },
+	{ name: "EUR", rate: 0.95, symbol: "€" },
+	{ name: "GBP", rate: 0.82, symbol: "£" },
+]
 
 const AppContextProvider = ({ children }) => {
 	const [userData, setUserData] = useState({
@@ -24,7 +29,7 @@ const AppContextProvider = ({ children }) => {
 	//update all the places where it is needed to show dynamic price
 	const [loginError, setLoginError] = useState({ component: "", message: "" })
 	const [preferences, setPreferences] = useState({
-		currency: { name: "USD", rate: 1, symbol: "$" },
+		currency: currencyList[0],
 		country: "United States",
 	})
 	const ref = useRef(false)
@@ -94,14 +99,6 @@ const AppContextProvider = ({ children }) => {
 		}
 	}
 
-	Storage.prototype.setObject = function (key, value) {
-		this.setItem(key, JSON.stringify(value))
-	}
-	Storage.prototype.getObject = function (key) {
-		const value = this.getItem(key)
-		return value && JSON.parse(value)
-	}
-
 	useEffect(() => {
 		onAuthStateChanged(auth, user => {
 			if (user) {
@@ -111,22 +108,27 @@ const AppContextProvider = ({ children }) => {
 			}
 		})
 	}, [])
+
 	useEffect(() => {
 		if (ref.current) {
 			localStorage.setItem("country", preferences.country)
-			localStorage.setObject("currency", preferences.currency)
+			localStorage.setItem("currency", preferences.currency.name)
 		} else {
 			ref.current = true
 			const savedCountry = localStorage.getItem("country")
-			const savedCurrency = localStorage.getObject("currency")
-			if (!savedCountry || !savedCurrency) {
+			const savedCurrencyName = localStorage.getItem("currency")
+			const savedCurrency = currencyList.find(
+				item => item.name === savedCurrencyName
+			)
+			if (!savedCountry || !savedCurrencyName) {
 				localStorage.setItem("country", preferences.country)
-				localStorage.setObject("currency", preferences.currency)
+				localStorage.setItem("currency", preferences.currency.name)
 			} else {
 				setPreferences({ country: savedCountry, currency: savedCurrency })
 			}
 		}
 	}, [preferences])
+	// console.log(preferences)
 
 	const values = {
 		...userData,

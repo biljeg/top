@@ -1,6 +1,7 @@
 import styled from "styled-components/macro"
 import { NativeSelect } from "@mantine/core"
-import { currencyList, countriesList } from "../../hooks/constants"
+import { countriesList } from "../../hooks/constants"
+import { currencyList } from "../../hooks/AppContext"
 import { useContext } from "react"
 import { AppContext } from "../../hooks/AppContext"
 
@@ -9,7 +10,18 @@ const Preferences = () => {
 	const handleChange = e => {
 		const value = e.target.value
 		const name = e.target.name
-		setPreferences(prevPreferences => ({ ...prevPreferences, [name]: value }))
+		const currency = currencyList.find(item => item.name === value)
+		if (name === "country") {
+			setPreferences(prevPreferences => ({
+				...prevPreferences,
+				[name]: value,
+			}))
+		} else {
+			setPreferences(prevPreferences => ({
+				...prevPreferences,
+				[name]: currency,
+			}))
+		}
 	}
 	return (
 		<PreferencesWrapper>
@@ -21,9 +33,9 @@ const Preferences = () => {
 				label="Select Country"
 			/>
 			<NativeSelect
-				value={preferences.currency}
+				value={preferences.currency.name}
 				onChange={e => handleChange(e)}
-				data={currencyList}
+				data={currencyList.map(item => item.name)}
 				name="currency"
 				label="Select Currency"
 			/>
