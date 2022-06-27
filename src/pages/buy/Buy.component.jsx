@@ -3,18 +3,14 @@ import { getProduct } from "../../hooks/getData"
 import { useQuery } from "react-query"
 import { useNavigate, useParams } from "react-router-dom"
 import { LoadingScreen } from "../../components/utils/Utils.component"
-import { useContext, useState } from "react"
+import { useContext, useState, useEffect } from "react"
 import AppContext from "../../hooks/AppContext"
 import { Button } from "@mantine/core"
 import { getFunctions, httpsCallable } from "../../hooks/firebase"
-import { useEffect } from "react"
-import { loadStripe } from "@stripe/stripe-js"
+import initializeStripe from "../../hooks/initStripe"
+
 const functions = getFunctions()
 const createStripeCheckout = httpsCallable(functions, "createStripeCheckout")
-const stripePromise = loadStripe(
-	"pk_test_51LEiL9Lf1upELHeD46KRRzQELWjUkHTQ7gfirZkRaWJs9ZEwh9OXA4OuVH3atsGVIu8COcsBbAgkOcBr3vPl5wDs008bhky2K4"
-)
-
 const Buy = () => {
 	const {
 		preferences: { sizes, currency },
@@ -44,7 +40,8 @@ const Buy = () => {
 			uid: uid,
 		})
 		const sessionId = response.data.id
-		await stripePromise.redirectToCheckout({
+		const stripe = await initializeStripe()
+		await stripe.redirectToCheckout({
 			sessionId: sessionId,
 		})
 	}
