@@ -11,12 +11,14 @@ import initializeStripe from "../../hooks/initStripe"
 
 const functions = getFunctions()
 const createStripeCheckout = httpsCallable(functions, "createStripeCheckout")
+
 const Buy = () => {
 	const {
 		preferences: { sizes, currency },
 		isLoggedIn,
-		user: { uid },
+		user,
 	} = useContext(AppContext)
+	const uid = user?.uid
 	const [selectedSize, setSelectedSize] = useState(null)
 	const { urlKey } = useParams()
 	const { data, isLoading, isError } = useQuery(
@@ -34,16 +36,20 @@ const Buy = () => {
 	const navigate = useNavigate()
 
 	const checkout = async objectID => {
-		const response = await createStripeCheckout({
-			objectID: objectID,
-			size: selectedSize,
-			uid: uid,
-		})
-		const sessionId = response.data.id
-		const stripe = await initializeStripe()
-		await stripe.redirectToCheckout({
-			sessionId: sessionId,
-		})
+		try {
+			const response = await createStripeCheckout({
+				objectID: objectID,
+				size: selectedSize,
+				uid: uid,
+			})
+			const sessionId = response.data.id
+			const stripe = await initializeStripe()
+			await stripe.redirectToCheckout({
+				sessionId: sessionId,
+			})
+		} catch (e) {
+			console.error(e.message)
+		}
 	}
 	useEffect(() => {
 		if (!isLoggedIn) {
@@ -96,7 +102,7 @@ const Buy = () => {
 						)
 					})}
 				</SizeGrid>
-				<Button onClick={checkout}>Continue</Button>
+				<Button onClick={() => checkout(data?.objectID)}>Continue</Button>
 			</BuySection>
 		</Container>
 	)
