@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form"
 import { TextInput, Button, PasswordInput } from "@mantine/core"
 import { useState, useEffect, useContext } from "react"
 import { Link } from "react-router-dom"
-import { AppContext } from "../../hooks/AppContext"
+import AppContext from "../../hooks/AppContext"
 
 const LoginForm = ({ isLoginPage, action }) => {
 	const {

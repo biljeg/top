@@ -1,9 +1,14 @@
 import styled from "styled-components/macro"
 import { NativeSelect } from "@mantine/core"
-import { countriesList } from "../../hooks/constants"
-import { currencyList } from "../../hooks/AppContext"
+import AppContext from "../../hooks/AppContext"
 import { useContext } from "react"
-import { AppContext } from "../../hooks/AppContext"
+
+export const currencyList = [
+	{ name: "USD", rate: 1, symbol: "$" },
+	{ name: "EUR", rate: 0.95, symbol: "€" },
+	{ name: "GBP", rate: 0.82, symbol: "£" },
+]
+const sizesList = ["US", "EU"]
 
 const Preferences = () => {
 	const { preferences, setPreferences } = useContext(AppContext)
@@ -11,33 +16,33 @@ const Preferences = () => {
 		const value = e.target.value
 		const name = e.target.name
 		const currency = currencyList.find(item => item.name === value)
-		if (name === "country") {
+		if (name === "sizes") {
 			setPreferences(prevPreferences => ({
 				...prevPreferences,
-				[name]: value,
+				sizes: value,
 			}))
 		} else {
 			setPreferences(prevPreferences => ({
 				...prevPreferences,
-				[name]: currency,
+				currency: currency,
 			}))
 		}
 	}
 	return (
 		<PreferencesWrapper>
 			<NativeSelect
-				value={preferences.country}
+				value={preferences.sizes}
 				onChange={e => handleChange(e)}
-				data={countriesList}
-				name="country"
-				label="Select Country"
+				data={sizesList}
+				name="sizes"
+				label="Sizes"
 			/>
 			<NativeSelect
 				value={preferences.currency.name}
 				onChange={e => handleChange(e)}
 				data={currencyList.map(item => item.name)}
 				name="currency"
-				label="Select Currency"
+				label="Currency"
 			/>
 		</PreferencesWrapper>
 	)

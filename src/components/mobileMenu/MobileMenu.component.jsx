@@ -3,7 +3,7 @@ import { createPortal } from "react-dom"
 import Close from "../../assets/icons/x-lg.svg"
 import { NavLink, useLocation } from "react-router-dom"
 import { useContext } from "react"
-import { AppContext } from "../../hooks/AppContext"
+import AppContext from "../../hooks/AppContext"
 
 const MobileMenu = ({ isMobileMenu, setIsMobileMenu }) => {
 	const { isLoggedIn } = useContext(AppContext)

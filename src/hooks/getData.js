@@ -14,7 +14,7 @@ const sneakersRef = collection(db, "sneakers")
 
 export const getFeaturedItems = async () => {
 	try {
-		const q = query(featuredRef, orderBy("objectID", "asc"))
+		const q = query(featuredRef)
 		const fetchedData = await getDocs(q)
 		return fetchedData.docs.map(doc => doc.data())
 	} catch (e) {
@@ -41,6 +41,7 @@ export const getRelatedProducts = async (shoe, title) => {
 				"objectID",
 				"sizes",
 				"media",
+				"market",
 			],
 			hitsPerPage: 6,
 		})

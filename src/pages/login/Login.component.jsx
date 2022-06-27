@@ -3,7 +3,7 @@ import { useState, useContext, useEffect } from "react"
 import { Button } from "@mantine/core"
 import { useLocation, useNavigate } from "react-router-dom"
 import LoginForm from "../../components/loginForm"
-import { AppContext } from "../../hooks/AppContext"
+import AppContext from "../../hooks/AppContext"
 
 const Login = () => {
 	const location = useLocation()
@@ -12,11 +12,11 @@ const Login = () => {
 	const [googleLoading, setGoogleLoading] = useState(false)
 	const { googleSignIn, logIn, signUp, isLoggedIn } = useContext(AppContext)
 	const navigate = useNavigate()
-	// useEffect(() => {
-	// 	if (isLoggedIn) {
-	// 		navigate("/profile")
-	// 	}
-	// }, [])
+	useEffect(() => {
+		if (isLoggedIn) {
+			navigate("/profile")
+		}
+	}, [])
 	const googleOnClick = async () => {
 		//google button displays 3 dots if it is loading
 		setGoogleLoading(true)

@@ -24,6 +24,7 @@ import {
 	sendPasswordResetEmail,
 	deleteUser,
 } from "firebase/auth"
+import { getFunctions, httpsCallable } from "firebase/functions"
 
 const firebaseConfig = {
 	apiKey: "AIzaSyCNyqzP9mUWGD54U49bpyhWXncDST9HvL4",
@@ -59,4 +60,6 @@ export {
 	deleteUser,
 	deleteDoc,
 	updateDoc,
+	getFunctions,
+	httpsCallable,
 }

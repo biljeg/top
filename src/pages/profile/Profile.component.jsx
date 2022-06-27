@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "react-query"
 import { Button, TextInput } from "@mantine/core"
 import Preferences from "../../components/preferences"
 import { LoadingScreen } from "../../components/utils"
-import { AppContext } from "../../hooks/AppContext"
+import AppContext from "../../hooks/AppContext"
 import DeleteModal from "../../components/deleteModal/DeleteModal.component"
 import { deleteAcc, updateProfile } from "../../hooks/auth"
 import { getAuth } from "../../hooks/firebase"
@@ -19,7 +19,8 @@ const Profile = () => {
 	const [isUpdatingUsername, setIsUpdatingUsername] = useState(false)
 	const navigate = useNavigate()
 	const queryClient = useQueryClient()
-	const { mutate: updateUser } = useMutation(updateProfile, {
+
+	const { mutate: updateUserMutation } = useMutation(updateProfile, {
 		onSuccess: () => {
 			queryClient.invalidateQueries("profile")
 		},
@@ -35,11 +36,11 @@ const Profile = () => {
 			username: profile?.username,
 		},
 	})
-	// useEffect(() => {
-	// 	if (!isLoggedIn) {
-	// 		navigate("/login")
-	// 	}
-	// }, [])
+	useEffect(() => {
+		if (!isLoggedIn) {
+			navigate("/login")
+		}
+	}, [])
 
 	const deleteAccount = () => {
 		const user = auth.currentUser
@@ -51,7 +52,7 @@ const Profile = () => {
 			setIsUpdatingUsername(false)
 			return
 		}
-		updateUser({ uid: auth.currentUser.uid, username: data.username })
+		updateUserMutation({ uid: auth.currentUser.uid, username: data.username })
 		setIsUpdatingUsername(false)
 	}
 	if (isProfileLoading)
@@ -62,65 +63,67 @@ const Profile = () => {
 		)
 	//error component that says error while fetching please reload
 	if (isProfileError) return <div>Error, please try again</div>
+
 	return (
-		<>
-			<DeleteModal
-				isOpened={isDeleteOpened}
-				setIsOpened={setIsDeleteOpened}
-				action={deleteAccount}
-			/>
-			<Main>
-				<Section>
-					<div>
-						<h3>Account details</h3>
-						{isUpdatingUsername ? (
-							// make component controlled via Controller
-							// so you can make it have the default value of the username before
-							<form onSubmit={handleSubmit(onSubmit)}>
-								<h4>Username</h4>
-								<TextInput
-									placeholder={profile?.username}
-									{...register("username")}
-								/>
-								<Button type="submit">Save changes</Button>
-							</form>
-						) : (
-							<div>
-								<h4>Username</h4>
-								<p>{profile?.username}</p>
-								<Button onClick={() => setIsUpdatingUsername(true)}>
-									Update your username
-								</Button>
-							</div>
-						)}
+		profile && (
+			<>
+				<DeleteModal
+					isOpened={isDeleteOpened}
+					setIsOpened={setIsDeleteOpened}
+					action={deleteAccount}
+				/>
+				<Main>
+					<Section>
 						<div>
-							<h4>Email</h4>
-							<p>{profile?.email}</p>
-						</div>
-						<Button onClick={signOut}>Sign out</Button>
-						{/* fix overlay styles */}
-						{/* <Button onClick={() => setIsDeleteOpened(true)}>
+							<h3>Account details</h3>
+							{isUpdatingUsername ? (
+								// make component controlled via Controller
+								// so you can make it have the default value of the username before
+								<form onSubmit={handleSubmit(onSubmit)}>
+									<h4>Username</h4>
+									<TextInput
+										placeholder={profile?.username}
+										{...register("username")}
+									/>
+									<Button type="submit">Save changes</Button>
+								</form>
+							) : (
+								<div>
+									<h4>Username</h4>
+									<p>{profile?.username}</p>
+									<Button onClick={() => setIsUpdatingUsername(true)}>
+										Update your username
+									</Button>
+								</div>
+							)}
+							<div>
+								<h4>Email</h4>
+								<p>{profile?.email}</p>
+							</div>
+							<Button onClick={signOut}>Sign out</Button>
+							{/* fix overlay styles */}
+							{/* <Button onClick={() => setIsDeleteOpened(true)}>
 							Delete account
 						</Button> */}
-						<div>
-							Reset password
-							<Link to={"/reset-password"}>
-								<Button>Reset password</Button>
-							</Link>
+							<div>
+								Reset password
+								<Link to={"/reset-password"}>
+									<Button>Reset password</Button>
+								</Link>
+							</div>
 						</div>
-					</div>
 
-					<div>
-						<h3>Preferences</h3>
-						{/* make it so preferences save to the account */}
-						<Preferences />
-					</div>
-				</Section>
-				<Section2>
-					<h2>Listings</h2>
-				</Section2>
-			</Main>
-		</>
+						<div>
+							<h3>Preferences</h3>
+							<Preferences />
+						</div>
+					</Section>
+					<Section2>
+						<h2>Listings</h2>
+					</Section2>
+				</Main>
+			</>
+		)
 	)
 	//sign out button
 }

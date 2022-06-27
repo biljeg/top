@@ -22,6 +22,7 @@ export const createUserDoc = async ({
 	uid,
 	email,
 	username = makeUsername(),
+	preferences,
 }) => {
 	const docRef = doc(db, "users", uid)
 	const docSnapshot = await getDoc(docRef)
@@ -31,6 +32,7 @@ export const createUserDoc = async ({
 		uid: uid,
 		email: email,
 		username: username,
+		preferences: preferences,
 	})
 }
 
@@ -50,6 +52,17 @@ export const updateProfile = async ({ uid, username }) => {
 		const docRef = doc(db, "users", uid)
 		await updateDoc(docRef, {
 			username,
+		})
+	} catch (e) {
+		console.error(e)
+	}
+}
+
+export const updatePreferences = async ({ uid, preferences }) => {
+	try {
+		const docRef = doc(db, "users", uid)
+		await updateDoc(docRef, {
+			preferences,
 		})
 	} catch (e) {
 		console.error(e)

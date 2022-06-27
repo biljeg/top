@@ -7,30 +7,28 @@ import {
 	signInWithPopup,
 	provider,
 } from "./firebase"
-import { useMutation } from "react-query"
 import { useNavigate } from "react-router-dom"
-import { useQuery, useQueryClient } from "react-query"
-import { getProfileData, createUserDoc, logOut } from "./auth"
+import { useQuery, useQueryClient, useMutation } from "react-query"
+import {
+	getProfileData,
+	createUserDoc,
+	logOut,
+	updatePreferences,
+} from "./auth"
+import { currencyList } from "../components/preferences"
 
 const auth = getAuth()
-export const AppContext = createContext()
-export const currencyList = [
-	{ name: "USD", rate: 1, symbol: "$" },
-	{ name: "EUR", rate: 0.95, symbol: "€" },
-	{ name: "GBP", rate: 0.82, symbol: "£" },
-]
+const AppContext = createContext()
 
-const AppContextProvider = ({ children }) => {
+export const AppContextProvider = ({ children }) => {
 	const [userData, setUserData] = useState({
 		user: null,
 		isLoggedIn: false,
 	})
-	//update preferences so it is an object with rate
-	//update all the places where it is needed to show dynamic price
 	const [loginError, setLoginError] = useState({ component: "", message: "" })
 	const [preferences, setPreferences] = useState({
-		currency: currencyList[0],
-		country: "United States",
+		currency: { name: "USD", rate: 1, symbol: "$" },
+		sizes: "EU",
 	})
 	const ref = useRef(false)
 	const navigate = useNavigate()
@@ -50,10 +48,8 @@ const AppContextProvider = ({ children }) => {
 			queryClient.invalidateQueries("profile")
 		},
 	})
-	const signOut = async () => {
-		await mutateLogOut()
-		navigate("/")
-	}
+
+	const { mutate: updatePrefMutation } = useMutation(updatePreferences)
 
 	const signUp = async (email, password, username) => {
 		try {
@@ -63,7 +59,7 @@ const AppContextProvider = ({ children }) => {
 				password
 			)
 			const uid = userCredential.user.uid
-			await createNewProfile({ uid, email, username })
+			await createNewProfile({ uid, email, username, preferences })
 			navigate("/")
 		} catch (error) {
 			if (error.code === "auth/email-already-in-use") {
@@ -92,11 +88,15 @@ const AppContextProvider = ({ children }) => {
 			const userCredential = await signInWithPopup(auth, provider)
 			const uid = userCredential.user.uid
 			const email = userCredential.user.email
-			await createNewProfile({ uid, email })
+			await createNewProfile({ uid, email, preferences })
 			navigate("/")
 		} catch (e) {
 			console.error(e)
 		}
+	}
+	const signOut = async () => {
+		await mutateLogOut()
+		navigate("/")
 	}
 
 	useEffect(() => {
@@ -111,24 +111,26 @@ const AppContextProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (ref.current) {
-			localStorage.setItem("country", preferences.country)
+			if (profile) {
+				updatePrefMutation({ uid: uid, preferences: preferences })
+			}
+			localStorage.setItem("sizes", preferences.sizes)
 			localStorage.setItem("currency", preferences.currency.name)
 		} else {
 			ref.current = true
-			const savedCountry = localStorage.getItem("country")
+			const savedSizes = localStorage.getItem("sizes")
 			const savedCurrencyName = localStorage.getItem("currency")
 			const savedCurrency = currencyList.find(
 				item => item.name === savedCurrencyName
 			)
-			if (!savedCountry || !savedCurrencyName) {
-				localStorage.setItem("country", preferences.country)
+			if (!savedSizes || !savedCurrencyName) {
+				localStorage.setItem("sizes", preferences.sizes)
 				localStorage.setItem("currency", preferences.currency.name)
 			} else {
-				setPreferences({ country: savedCountry, currency: savedCurrency })
+				setPreferences({ sizes: savedSizes, currency: savedCurrency })
 			}
 		}
 	}, [preferences])
-	// console.log(preferences)
 
 	const values = {
 		...userData,
@@ -146,4 +148,4 @@ const AppContextProvider = ({ children }) => {
 	return <AppContext.Provider value={values}>{children}</AppContext.Provider>
 }
 
-export default AppContextProvider
+export default AppContext

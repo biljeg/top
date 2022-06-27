@@ -2,7 +2,7 @@ import styled from "styled-components/macro"
 import { useContext, useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import SearchBar from "../searchBar"
-import { AppContext } from "../../hooks/AppContext"
+import AppContext from "../../hooks/AppContext"
 import Logo from "../../assets/logos/TOP_logo.svg"
 import List from "../../assets/icons/list.svg"
 import Search from "../../assets/icons/search.svg"
@@ -31,7 +31,24 @@ const Header = () => {
 			</HeaderLogin>
 		)
 	}
+	//make it like stockx's with logo on left  side and FAQ
+	//on the right that goes to help page
+	if (currentPath.split("/")[1] == "buy") {
+		return (
+			<HeaderLogin>
+				<NavbarLogin>
+					<NavLink to={"/"}>
+						<LogoContainer>
+							<img src={Logo} />
+						</LogoContainer>
+					</NavLink>
+				</NavbarLogin>
+			</HeaderLogin>
+		)
+	}
+
 	return (
+		//make the account priofile
 		<>
 			<HeaderDesktop>
 				<NavbarDesktop>
@@ -128,6 +145,7 @@ const NavbarLogin = styled.nav``
 const HeaderLogin = styled.nav`
 	display: flex;
 	justify-content: center;
+	border-bottom: 1px solid black;
 `
 
 const HeaderDesktop = styled.header`
@@ -143,6 +161,7 @@ const HeaderDesktop = styled.header`
 	@media (min-width: 1200px) {
 		padding: 0 2.5rem;
 	}
+	margin-bottom: 2rem;
 `
 
 const NavbarDesktop = styled.nav`
@@ -172,6 +191,7 @@ const HeaderMobile = styled.div`
 	@media (min-width: 1200px) {
 		padding: 0 2.5rem;
 	}
+	margin-bottom: 2rem;
 `
 const NavbarMobile = styled.div`
 	display: flex;

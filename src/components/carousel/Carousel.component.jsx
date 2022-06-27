@@ -2,15 +2,13 @@ import styled from "styled-components/macro"
 import CarouselCard from "../carouselCard"
 
 const Carousel = ({ items }) => {
-	if (!items) return
+	if (!items) return //guard clausovi svugdje ili ne?
 	return (
 		<CarouselWrapper>
 			{items.map(item => (
 				<CarouselCard
 					title={item.title}
-					lowestAskUSD={item.sizes[9].lowestAskUSD}
-					lowestAskEUR={item.sizes[9].lowestAskEUR}
-					lowestAskGBP={item.sizes[9].lowestAskGBP}
+					lastSale={item.market.lastSale}
 					urlKey={item.urlKey}
 					condition={item.condition}
 					smallImageUrl={item.media.smallImageUrl}

@@ -39,11 +39,6 @@ body {
 	position: relative;
 	font-family: "Roboto", sans-serif;
 	width: 100%;
-	background-color: $light-gray;
-}
-
-.body-dark {
-	background-color: $midnight;
 }
 
 /* Make images easier to work with */

@@ -10,7 +10,6 @@ const Home = () => {
 		"featuredItems",
 		getFeaturedItems
 	)
-
 	if (isLoading)
 		return (
 			<>
@@ -20,11 +19,11 @@ const Home = () => {
 	//error component that says error while fetching please reload
 	if (isError) return <div>Error, please try again</div>
 	const filterItems = category => {
-		if (!data) return
+		if (!data) return //guard clausovi ovdje ili ne?
 		return data.filter(item => item.category === category)
 	}
 	const popularShoes = () => {
-		if (!data) return
+		if (!data) return //guard clausovi ovdje ili ne?
 		const filters = [
 			"Nike Dunk Low Retro White Black Panda (2021)",
 			"adidas Yeezy Boost 350 V2 Zebra",

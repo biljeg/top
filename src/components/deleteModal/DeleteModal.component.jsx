@@ -3,7 +3,7 @@ import { Button } from "@mantine/core"
 import { createPortal } from "react-dom"
 
 const DeleteModal = ({ isOpened, setIsOpened, action }) => {
-	if (!isOpened) return false
+	if (!isOpened) return null
 	const executeAction = () => {
 		setIsOpened(false)
 	}

@@ -1,14 +1,19 @@
 import styled from "styled-components/macro"
 import { Highlight, useHits } from "react-instantsearch-hooks-web"
 import { Link } from "react-router-dom"
+import { useContext } from "react"
+import AppContext from "../../hooks/AppContext"
 
 const SearchHits = ({ query }) => {
+	const {
+		preferences: { currency },
+	} = useContext(AppContext)
+
 	const { hits } = useHits()
 	if (hits.length === 0) {
 		return null
 	}
 	if (query === "") return null
-	// console.log(hits)
 	return (
 		<SearchHitsWrapper>
 			{hits.map(hit => (
@@ -20,11 +25,10 @@ const SearchHits = ({ query }) => {
 						<h4>
 							<Highlight attribute="title" hit={hit} />
 						</h4>
-						{/* make system so everything responds to 
-			price change (give everthing usd price and 
-				exchange it to eur or pound for now; in the 
-			future use i18n library?) */}
-						<p>${hit.market.lowestAsk}</p>
+						<p>
+							{currency.symbol}
+							{Math.floor(hit.market.lastSale * currency.rate)}
+						</p>
 					</HitWrapper>
 				</Link>
 			))}

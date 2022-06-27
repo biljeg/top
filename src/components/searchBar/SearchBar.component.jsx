@@ -1,7 +1,7 @@
 import styled from "styled-components/macro"
 // import { index } from "../../hooks/algolia"
 import { useSearchBox } from "react-instantsearch-hooks-web"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useForm, Controller } from "react-hook-form"
 import SearchHits from "../searchHits"

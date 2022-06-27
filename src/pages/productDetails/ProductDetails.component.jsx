@@ -1,18 +1,24 @@
 import styled from "styled-components/macro"
 import { getProduct, getRelatedProducts } from "../../hooks/getData"
 import { useQuery } from "react-query"
-import { useParams } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import { LoadingScreen } from "../../components/utils/Utils.component"
 import Carousel from "../../components/carousel"
+import { useContext } from "react"
+import AppContext from "../../hooks/AppContext"
 
 const ProductDetails = () => {
 	const { urlKey } = useParams()
+	const {
+		preferences: { currency },
+	} = useContext(AppContext)
 	const { data, isLoading, isError } = useQuery(
 		["productDetails", urlKey],
 		() => getProduct(urlKey)
 	)
 	const { data: relatedProducts, isLoading: relatedProductLoading } = useQuery(
 		["relatedProducts", data?.shoe, data?.title],
+		//trebam li ovdje provjeravat postoji li mi data ako vec imam da nije enabled?
 		() => getRelatedProducts(data?.shoe, data?.title),
 		{
 			enabled: !!data,
@@ -33,26 +39,37 @@ const ProductDetails = () => {
 					<img src={data?.media.imageUrl} alt={data.title} />
 				</ProductDetailsImg>
 				<div>
-					{/* make system so everything responds to 
-			price change (give everthing usd price and 
-			exchange it to eur or pound for now; in the 
-			future use i18n library?) */}
 					<h1>{data.title}</h1>
 					<div>
 						<h3>Lowest Ask:</h3>
-						<p>${data.sizes[9].lowestAskUSD}</p>
+						<p>
+							{currency.symbol}
+							{Math.floor(data.market.lowestAsk * currency.rate)}
+						</p>
 					</div>
 					<div>
 						<h3>Highest Bid:</h3>
-						<p>${data.sizes[9].highestBidUSD}</p>
+						<p>
+							{currency.symbol}
+							{Math.floor(data.market.highestBid * currency.rate)}
+						</p>
 					</div>
 					<div>
 						<h3>Last Sale:</h3>
-						<p>${data.sizes[9].lastSaleUSD}</p>
+						<p>
+							{currency.symbol}
+							{Math.floor(data.market.lastSale * currency.rate)}
+						</p>
 					</div>
 					<p>{data.brand}</p>
 					<p>{data.condition}</p>
 					<p>{data.colorway}</p>
+					<Link to={`/buy/${urlKey}`}>
+						<button>BUY</button>
+					</Link>
+					{/* <Link to={`/buy/${urlKey}`}>
+						<button>SELL</button>
+					</Link> */}
 				</div>
 			</Section>
 			<Section2>

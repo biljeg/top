@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom"
 import styled from "styled-components/macro"
 
+import { useContext } from "react"
+import AppContext from "../../hooks/AppContext"
 const ProductCard = ({ title, market, media, urlKey, condition }) => {
+	const {
+		preferences: { currency },
+	} = useContext(AppContext)
 	return (
 		<StyledLink to={`/sneakers/${urlKey}`}>
 			<ProductCardWrapper>
@@ -10,7 +15,10 @@ const ProductCard = ({ title, market, media, urlKey, condition }) => {
 				</div>
 				<Description>
 					<h3>{title}</h3>
-					<p>{market.lastSale}</p>
+					<p>
+						{currency.symbol}
+						{Math.floor(market.lastSale * currency.rate)}
+					</p>
 					<p>{condition}</p>
 				</Description>
 			</ProductCardWrapper>
