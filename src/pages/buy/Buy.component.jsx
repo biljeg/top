@@ -8,12 +8,14 @@ import AppContext from "../../hooks/AppContext"
 import { Button } from "@mantine/core"
 import { getFunctions, httpsCallable } from "../../hooks/firebase"
 import { useEffect } from "react"
-import { useStripe } from "@stripe/react-stripe-js"
+import { loadStripe } from "@stripe/stripe-js"
 const functions = getFunctions()
 const createStripeCheckout = httpsCallable(functions, "createStripeCheckout")
+const stripePromise = loadStripe(
+	"pk_test_51LEiL9Lf1upELHeD46KRRzQELWjUkHTQ7gfirZkRaWJs9ZEwh9OXA4OuVH3atsGVIu8COcsBbAgkOcBr3vPl5wDs008bhky2K4"
+)
 
 const Buy = () => {
-	const stripe = useStripe()
 	const {
 		preferences: { sizes, currency },
 		isLoggedIn,
@@ -42,7 +44,7 @@ const Buy = () => {
 			uid: uid,
 		})
 		const sessionId = response.data.id
-		stripe.redirectToCheckout({
+		await stripePromise.redirectToCheckout({
 			sessionId: sessionId,
 		})
 	}

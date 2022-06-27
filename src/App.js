@@ -15,12 +15,7 @@ import Footer from "./components/footer"
 import Terms from "./pages/terms"
 import Privacy from "./pages/privacy"
 import Buy from "./pages/buy"
-import { Elements } from "@stripe/react-stripe-js"
-import { loadStripe } from "@stripe/stripe-js"
 import CanceledOrder from "./components/canceledOrder"
-const stripePromise = loadStripe(
-	"pk_test_51LEiL9Lf1upELHeD46KRRzQELWjUkHTQ7gfirZkRaWJs9ZEwh9OXA4OuVH3atsGVIu8COcsBbAgkOcBr3vPl5wDs008bhky2K4"
-)
 
 function App() {
 	return (
@@ -35,14 +30,7 @@ function App() {
 				<Route path="/help" element={<Help />} />
 				<Route path="/login" element={<Login />} />
 				<Route path="/profile" element={<Profile />} />
-				<Route
-					path="/buy/:urlKey"
-					element={
-						<Elements stripe={stripePromise}>
-							<Buy />
-						</Elements>
-					}
-				/>
+				<Route path="/buy/:urlKey" element={<Buy />} />
 				<Route path="/reset-password" element={<ResetPassword />} />
 				<Route path="/order/cancel" element={<CanceledOrder />} />
 				<Route path="/terms" element={<Terms />} />
