@@ -96,7 +96,7 @@ const Buy = () => {
 						)
 					})}
 				</SizeGrid>
-				<Button>Continue</Button>
+				<Button onClick={checkout}>Continue</Button>
 			</BuySection>
 		</Container>
 	)
