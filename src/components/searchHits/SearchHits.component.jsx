@@ -4,7 +4,7 @@ import { Link } from "react-router-dom"
 import { useContext } from "react"
 import AppContext from "../../hooks/AppContext"
 
-const SearchHits = ({ query }) => {
+const SearchHits = ({ query, isSellPage }) => {
 	const {
 		preferences: { currency },
 	} = useContext(AppContext)
@@ -14,6 +14,24 @@ const SearchHits = ({ query }) => {
 		return null
 	}
 	if (query === "") return null
+	if (isSellPage) {
+		return (
+			<SearchHitsWrapperSell>
+				{hits.map(hit => (
+					<Link to={`/sell/${hit.urlKey}`} key={hit.objectID}>
+						<HitWrapper>
+							<HitImg>
+								<img src={hit.media.smallImageUrl} alt={hit.title} />
+							</HitImg>
+							<h4>
+								<Highlight attribute="title" hit={hit} />
+							</h4>
+						</HitWrapper>
+					</Link>
+				))}
+			</SearchHitsWrapperSell>
+		)
+	}
 	return (
 		<SearchHitsWrapper>
 			{hits.map(hit => (
@@ -40,6 +58,13 @@ export default SearchHits
 
 const SearchHitsWrapper = styled.div`
 	position: absolute;
+	background-color: white;
+`
+
+const SearchHitsWrapperSell = styled.div`
+	position: absolute;
+	transform: translateY(60%);
+
 	background-color: white;
 `
 

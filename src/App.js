@@ -16,6 +16,8 @@ import Terms from "./pages/terms"
 import Privacy from "./pages/privacy"
 import Buy from "./pages/buy"
 import CanceledOrder from "./components/canceledOrder"
+import SellProduct from "./pages/sellProduct/SellProduct.component"
+import SellMenu from "./pages/sellMenu"
 
 function App() {
 	return (
@@ -31,6 +33,8 @@ function App() {
 				<Route path="/login" element={<Login />} />
 				<Route path="/profile" element={<Profile />} />
 				<Route path="/buy/:urlKey" element={<Buy />} />
+				<Route path="/sell" element={<SellMenu />} />
+				<Route path="/sell/:urlKey" element={<SellProduct />} />
 				<Route path="/reset-password" element={<ResetPassword />} />
 				<Route path="/order/cancel" element={<CanceledOrder />} />
 				<Route path="/terms" element={<Terms />} />

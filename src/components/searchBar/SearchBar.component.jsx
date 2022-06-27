@@ -2,12 +2,16 @@ import styled from "styled-components/macro"
 // import { index } from "../../hooks/algolia"
 import { useSearchBox } from "react-instantsearch-hooks-web"
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
 import { useForm, Controller } from "react-hook-form"
 import SearchHits from "../searchHits"
 import Search from "../../assets/icons/search.svg"
 
-const SearchBar = ({ isMobile, setIsMobileSearch }) => {
+const SearchBar = ({
+	isMobileSearch,
+	setIsMobileSearch,
+	onSubmit,
+	isSellPage,
+}) => {
 	const { query, refine } = useSearchBox()
 	const [value, setValue] = useState(query)
 	const { handleSubmit, control } = useForm({
@@ -15,19 +19,11 @@ const SearchBar = ({ isMobile, setIsMobileSearch }) => {
 			searchBox: "",
 		},
 	})
-	const navigate = useNavigate()
 	useEffect(() => {
 		if (value !== query) {
 			refine(value)
 		}
 	}, [value])
-	const onSubmit = data => {
-		// data.searchBox send this data through routing to filterProducts?
-		if (isMobile) {
-			setIsMobileSearch(false)
-		}
-		navigate("/sneakers", { state: { urlQuery: data.searchBox } })
-	}
 
 	//8 hits
 	return (
@@ -52,7 +48,7 @@ const SearchBar = ({ isMobile, setIsMobileSearch }) => {
 						)}
 					/>
 				</InputWrapper>
-				{isMobile && (
+				{isMobileSearch && (
 					<Button type="submit">
 						{/* remove icon container and individually named icons 
 						(use props to make their size different) */}
@@ -64,7 +60,7 @@ const SearchBar = ({ isMobile, setIsMobileSearch }) => {
 			</Form>
 
 			{/* <div>div around hits that makes them position absolute</div> */}
-			<SearchHits query={query} />
+			<SearchHits query={query} isSellPage={isSellPage} />
 		</>
 	)
 }

@@ -10,6 +10,7 @@ import Close from "../../assets/icons/x-lg.svg"
 import MobileMenu from "../mobileMenu/MobileMenu.component"
 import { searchClient } from "../../hooks/algolia"
 import { Configure, InstantSearch } from "react-instantsearch-hooks-web"
+import { useNavigate } from "react-router-dom"
 
 const Header = () => {
 	const location = useLocation()
@@ -17,6 +18,7 @@ const Header = () => {
 	const { isLoggedIn } = useContext(AppContext)
 	const [isMobileMenu, setIsMobileMenu] = useState(false)
 	const [isMobileSearch, setIsMobileSearch] = useState(false)
+	const navigate = useNavigate()
 
 	if (currentPath === "/login") {
 		return (
@@ -46,6 +48,13 @@ const Header = () => {
 			</HeaderLogin>
 		)
 	}
+	const onSubmit = data => {
+		// data.searchBox send this data through routing to filterProducts?
+		if (isMobileSearch) {
+			setIsMobileSearch(false)
+		}
+		navigate("/sneakers", { state: { urlQuery: data.searchBox } })
+	}
 
 	return (
 		//make the account priofile
@@ -70,6 +79,9 @@ const Header = () => {
 					<MenuDesktop>
 						<div>
 							<NavLink to={"/sneakers"}>Sneakers</NavLink>
+						</div>
+						<div>
+							<NavLink to={"/sell"}>Sell</NavLink>
 						</div>
 						{isLoggedIn ? (
 							<div>
@@ -100,6 +112,7 @@ const Header = () => {
 								<SearchBar
 									isMobile={true}
 									setIsMobileSearch={setIsMobileSearch}
+									onSubmit={onSubmit}
 								/>
 								<Configure hitsPerPage={8} />
 							</InstantSearch>

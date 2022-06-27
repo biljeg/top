@@ -13,7 +13,7 @@ const ProductDetails = () => {
 		preferences: { currency },
 	} = useContext(AppContext)
 	const { data, isLoading, isError } = useQuery(
-		["productDetails", urlKey],
+		[`productDetails${urlKey}`, urlKey],
 		() => getProduct(urlKey)
 	)
 	const { data: relatedProducts, isLoading: relatedProductLoading } = useQuery(
@@ -66,6 +66,9 @@ const ProductDetails = () => {
 					<p>{data.colorway}</p>
 					<Link to={`/buy/${urlKey}`}>
 						<button>BUY</button>
+					</Link>
+					<Link to={`/sell/${urlKey}`}>
+						<button>SELL</button>
 					</Link>
 					{/* <Link to={`/buy/${urlKey}`}>
 						<button>SELL</button>

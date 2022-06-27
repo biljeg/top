@@ -8,6 +8,7 @@ const Footer = () => {
 	if (location.pathname === "/sneakers") return null
 	if (location.pathname === "/login") return null
 	if (location.pathname.split("/")[1] === "buy") return null
+	if (location.pathname.split("/")[1] === "sell") return null
 
 	return (
 		<FooterWrapper>

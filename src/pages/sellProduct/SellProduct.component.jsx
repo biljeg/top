@@ -1,23 +1,27 @@
 import styled from "styled-components/macro"
 import { getProduct } from "../../hooks/getData"
-import { useQuery } from "react-query"
+import { newListing } from "../../hooks/createDocs"
+import { useMutation, useQuery, useQueryClient } from "react-query"
 import { useNavigate, useParams } from "react-router-dom"
 import { LoadingScreen } from "../../components/utils/Utils.component"
+import toast, { Toaster } from "react-hot-toast"
 import { useContext, useState, useEffect } from "react"
 import AppContext from "../../hooks/AppContext"
 import { Button } from "@mantine/core"
-import { getFunctions, httpsCallable } from "../../hooks/firebase"
-import initializeStripe from "../../hooks/initStripe"
 
-const functions = getFunctions()
-const createStripeCheckout = httpsCallable(functions, "createStripeCheckout")
-
-const Buy = () => {
+const SellProduct = () => {
+	const navigate = useNavigate()
+	const queryClient = useQueryClient()
 	const {
 		preferences: { sizes, currency },
 		isLoggedIn,
 		user,
 	} = useContext(AppContext)
+	useEffect(() => {
+		if (!isLoggedIn) {
+			navigate("/login")
+		}
+	}, [])
 	const uid = user?.uid
 	const [selectedSize, setSelectedSize] = useState(null)
 	const { urlKey } = useParams()
@@ -28,25 +32,26 @@ const Buy = () => {
 	const handleClick = sizePreference => {
 		setSelectedSize(sizePreference)
 	}
+	const { mutate: createListing } = useMutation(newListing, {
+		onSuccess: () => {
+			queryClient.invalidateQueries("profile")
+			queryClient.invalidateQueries(`productDetails${urlKey}`)
+		},
+	})
 	const formatSize = size => {
 		const newSize = size[`size${sizes}`] //sizeEU for example
-		const newLowestAsk = size[`lowestAsk${currency.name}`] //lowestAskUSD
-		return [newSize, newLowestAsk]
+		const newHighestBid = size[`highestBid${currency.name}`] //lowestAskUSD
+		return [newSize, newHighestBid]
 	}
-	const navigate = useNavigate()
-
-	const checkout = async objectID => {
+	const sell = async objectID => {
 		try {
-			const response = await createStripeCheckout({
-				objectID: objectID,
-				size: selectedSize,
-				uid: uid,
-			})
-			const sessionId = response.data.id
-			const stripe = await initializeStripe()
-			await stripe.redirectToCheckout({
-				sessionId: sessionId,
-			})
+			const response = await createListing({ uid, objectID })
+			if (response === "Listing already exists") {
+				toast(response)
+			} else {
+				toast(response)
+				navigate("/")
+			}
 		} catch (e) {
 			console.error(e.message)
 		}
@@ -67,12 +72,13 @@ const Buy = () => {
 	return (
 		//make this also an utility class
 		<Container>
+			<Toaster />
 			<ProductSection>
 				<H1>{data.title}</H1>
 				<MarketDetails>
 					<p>
-						Highest bid: {currency.symbol}
-						{Math.floor(data.market.highestBid * currency.rate)}
+						Lowest Ask: {currency.symbol}
+						{Math.floor(data.market.lowestAsk * currency.rate)}
 					</p>
 					<p>
 						Last sold: {currency.symbol}
@@ -85,34 +91,53 @@ const Buy = () => {
 			</ProductSection>
 			<BuySection>
 				<h2>Select size</h2>
-				<p>{sizes} Size | Lowest Ask</p>
+				<p>{sizes} Size | Highest Bid</p>
+				<strong>--here would be input box--</strong>
 				<SizeGrid>
 					{data.sizes.map((size, idx) => {
-						const [sizePreference, lowestAsk] = formatSize(size)
+						const [sizePreference, highestBid] = formatSize(size)
 						return (
-							<Size key={idx} onClick={() => handleClick(sizePreference)}>
-								<p>
-									{sizes} - {sizePreference}
-								</p>
-								<p>
-									{currency.symbol}
-									{lowestAsk}
-								</p>
-							</Size>
+							<SizeContainer
+								key={idx}
+								onClick={() => handleClick(sizePreference)}
+							>
+								{selectedSize === sizePreference ? (
+									<SelectedSize>
+										<p>
+											{sizes} - {sizePreference}
+										</p>
+										<p>
+											{currency.symbol}
+											{highestBid}
+										</p>
+									</SelectedSize>
+								) : (
+									<Size>
+										<p>
+											{sizes} - {sizePreference}
+										</p>
+										<p>
+											{currency.symbol}
+											{highestBid}
+										</p>
+									</Size>
+								)}
+							</SizeContainer>
 						)
 					})}
 				</SizeGrid>
-				<Button onClick={() => checkout(data?.objectID)}>Continue</Button>
+				<Button onClick={() => sell()}>SELL</Button>
 			</BuySection>
 		</Container>
 	)
 }
 
-export default Buy
+export default SellProduct
 
 const Container = styled.section`
 	display: flex;
-	justify-content: space-between;
+	flex-direction: column;
+	align-items: center;
 	width: 100%;
 `
 
@@ -121,7 +146,7 @@ const ProductSection = styled.div`
 	flex-direction: column;
 	align-items: center;
 	width: 50vw;
-	border-right: 1px solid black;
+	border-bottom: 1px solid black;
 `
 const H1 = styled.h1`
 	font-size: 32px;
@@ -130,11 +155,10 @@ const BuySection = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	width: 50vw;
 `
 const SizeGrid = styled.div`
 	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(8, 1fr);
 	column-gap: 0.5rem;
 	row-gap: 0.25rem;
 `
@@ -147,4 +171,12 @@ const ImgContainer = styled.div``
 const Size = styled.div`
 	padding: 5px;
 	border: 1px solid black;
+`
+const SelectedSize = styled.div`
+	padding: 5px;
+	background-color: gray;
+	border: 1px solid black;
+`
+const SizeContainer = styled.div`
+	cursor: pointer;
 `
