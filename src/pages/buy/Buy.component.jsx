@@ -22,7 +22,7 @@ const Buy = () => {
 	const [selectedSize, setSelectedSize] = useState(null)
 	const { urlKey } = useParams()
 	const { data, isLoading, isError } = useQuery(
-		[`productDetails${urlKey}`, urlKey],
+		[`productDetails-${urlKey}`, urlKey],
 		() => getProduct(urlKey)
 	)
 	const handleClick = sizePreference => {

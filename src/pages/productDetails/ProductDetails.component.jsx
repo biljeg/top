@@ -1,29 +1,125 @@
 import styled from "styled-components/macro"
-import { getProduct, getRelatedProducts } from "../../hooks/getData"
-import { useQuery } from "react-query"
+import {
+	getProduct,
+	getProductListing,
+	getRelatedProducts,
+} from "../../hooks/getData"
+import { useQuery, useMutation, queryClient } from "react-query"
 import { Link, useParams } from "react-router-dom"
 import { LoadingScreen } from "../../components/utils/Utils.component"
 import Carousel from "../../components/carousel"
-import { useContext } from "react"
+import { useContext, useState } from "react"
 import AppContext from "../../hooks/AppContext"
+import { nanoid } from "nanoid"
+import { Button, TextInput, NativeSelect } from "@mantine/core"
+import { useForm } from "react-hook-form"
+import { sizeChart } from "../../hooks/constants"
+import { updateListing, deleteListing } from "../../hooks/createDocs"
 
 const ProductDetails = () => {
 	const { urlKey } = useParams()
 	const {
-		preferences: { currency },
+		preferences: { currency, sizePreference },
+		user,
 	} = useContext(AppContext)
 	const { data, isLoading, isError } = useQuery(
-		[`productDetails${urlKey}`, urlKey],
+		[`productDetails-${urlKey}`, urlKey],
 		() => getProduct(urlKey)
 	)
 	const { data: relatedProducts, isLoading: relatedProductLoading } = useQuery(
 		["relatedProducts", data?.shoe, data?.title],
-		//trebam li ovdje provjeravat postoji li mi data ako vec imam da nije enabled?
 		() => getRelatedProducts(data?.shoe, data?.title),
 		{
 			enabled: !!data,
 		}
 	)
+	const uid = user?.uid //uid is undefined when you refresh
+	const {
+		data: listing,
+		isLoading: isListingLoading,
+		isError: isListingError,
+	} = useQuery(
+		[`productListings-${data?.object}`, data?.objectID, uid],
+		() => getProductListing(data?.objectID, uid),
+		{
+			enabled: !!uid || !!data?.objectID,
+		}
+	)
+	const {
+		handleSubmit,
+		register,
+		formState: { errors },
+	} = useForm()
+
+	const { mutateAsync: updateListingMutation } = useMutation(updateListing)
+
+	const sizesToDisplay = () => {
+		let newSizes
+		if (sizePreference === "EU") {
+			newSizes = sizeChart.map(size => size.sizeEU)
+		} else {
+			newSizes = sizeChart.map(size => size.sizeUS)
+		}
+		return newSizes
+	}
+
+	// call mutation which
+	// invalidates porfile and product
+
+	const formatPrice = sellingPrice => {
+		let priceUSD
+		if (currency.name === "USD") {
+			priceUSD = sellingPrice
+		} else if (currency.name === "EUR") {
+			priceUSD = sellingPrice * 1.05
+		} else {
+			priceUSD = sellingPrice * 1.22
+		}
+		return priceUSD
+	}
+	const formatSize = selectedSize => {
+		let sizeUS
+		let sizeEU
+		if (sizePreference === "US") {
+			sizeUS = selectedSize
+			sizeEU = sizeChart.find(size => size.sizeUS === sizeUS).sizeEU
+		} else {
+			sizeEU = selectedSize
+			sizeUS = sizeChart.find(size => size.sizeEU === sizeEU).sizeUS
+		}
+		return {
+			sizeUS,
+			sizeEU,
+		}
+	}
+
+	const { mutate: deleteListingMutation } = useMutation(deleteListing, {
+		onSuccess: () => {
+			queryClient.invalidateQueries("profile")
+			queryClient.invalidateQueries(`productDetails-${urlKey}`)
+		},
+	})
+	const [editMenu, setEditMenu] = useState(false)
+	const onSubmit = async (data, listing) => {
+		if (
+			data.sellingPrice === listing.price &&
+			data.selectedSize === listing.size
+		) {
+			return
+		}
+		const sizeInfo = formatSize(data.selectedSize)
+		const priceUSD = formatPrice(data.sellingPrice)
+		await updateListingMutation({
+			objectID: listing.objectID,
+			uid,
+			price: priceUSD,
+			sizeInfo,
+		})
+		queryClient.invalidateQueries("profile")
+		queryClient.invalidateQueries(`productDetails-${urlKey}`)
+		setEditMenu(false)
+	}
+
 	if (isLoading)
 		return (
 			<>
@@ -70,9 +166,6 @@ const ProductDetails = () => {
 					<Link to={`/sell/${urlKey}`}>
 						<button>SELL</button>
 					</Link>
-					{/* <Link to={`/buy/${urlKey}`}>
-						<button>SELL</button>
-					</Link> */}
 				</div>
 			</Section>
 			<Section2>
@@ -83,6 +176,98 @@ const ProductDetails = () => {
 				<p>Release Date: {data.releaseDate}</p>
 				<p>Retail Price: {data.retailPrice}</p>
 			</Section2>
+			<div>
+				{isListingLoading ? (
+					isListingError ? (
+						<div>Error loading listings</div>
+					) : (
+						<div>Loading</div>
+					)
+				) : isListingError ? (
+					<div>Error loading listings</div>
+				) : (
+					listing && (
+						<Section2>
+							<h4>You have 1 listing for this item</h4>
+							<Listing key={nanoid()}>
+								<div>
+									<img src={listing.thumbnail} alt={listing.title} />
+								</div>
+								<div>
+									<p>{listing.title}</p>
+									{editMenu ? (
+										<div>
+											<form
+												onSubmit={handleSubmit(data =>
+													onSubmit(data, {
+														price: Math.floor(listing.price * currency.rate),
+														size:
+															sizePreference === "EU"
+																? listing.sizeInfo.sizeEU
+																: listing.sizeInfo.sizeUS,
+														objectID: listing.objectID,
+														urlKey: listing.urlKey,
+													})
+												)}
+											>
+												<TextInput
+													defaultValue={Math.floor(
+														listing.price * currency.rate
+													)}
+													{...register("sellingPrice", {
+														required: true,
+														min: 20,
+														max: 10000,
+													})}
+												/>
+												<NativeSelect
+													data={sizesToDisplay()}
+													defaultValue={
+														sizePreference === "EU"
+															? listing.sizeInfo.sizeEU
+															: listing.sizeInfo.sizeUS
+													}
+													rightSection={
+														<InputRightSection>
+															{sizePreference}
+														</InputRightSection>
+													}
+													rightSectionWidth={50}
+													{...register("selectedSize", {
+														required: true,
+													})}
+												/>
+												<Button type="submit">Apply changes</Button>
+											</form>
+											<Button
+												onClick={() =>
+													deleteListingMutation({
+														objectID: listing.objectID,
+														uid,
+													})
+												}
+											>
+												Delete
+											</Button>
+											<Button onClick={() => setEditMenu(null)}>Cancel</Button>
+										</div>
+									) : (
+										<div>
+											<p>{Math.floor(listing.price * currency.rate)}</p>
+											<p>
+												{sizePreference === "EU"
+													? listing.sizeInfo.sizeEU
+													: listing.sizeInfo.sizeUS}
+											</p>
+											<Button onClick={() => setEditMenu(true)}>Edit</Button>
+										</div>
+									)}
+								</div>
+							</Listing>
+						</Section2>
+					)
+				)}
+			</div>
 			{!relatedProductLoading && (
 				<Section2>
 					<h2>Related Products</h2>
@@ -106,3 +291,13 @@ const Section2 = styled.section`
 const ProductDetailsImg = styled.div`
 	width: 400px;
 `
+const Listing = styled.div`
+	display: flex;
+	width: 750px;
+	height: 75px;
+	div {
+		display: flex;
+		gap: 10px;
+	}
+`
+const InputRightSection = styled.div``

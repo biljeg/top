@@ -52,6 +52,46 @@ export const getRelatedProducts = async (shoe, title) => {
 	}
 }
 
+export const getProfileListings = async uid => {
+	try {
+		const colRef = collection(db, "users", uid, "listings")
+		const dataSnapshot = await getDocs(colRef)
+		const data = []
+		dataSnapshot.forEach(doc => {
+			data.push(doc.data())
+		})
+		return data
+	} catch (e) {
+		console.error(e)
+	}
+}
+
+export const getProductListing = async (objectID, uid) => {
+	try {
+		const colRef = collection(db, "sneakers", objectID, "listings")
+		const dataSnapshot = await getDocs(colRef)
+		let listing
+		dataSnapshot.forEach(doc => {
+			const data = []
+			data.push(doc.data())
+			listing = data.find(listing => listing.uid === uid)
+		})
+		return listing
+	} catch (e) {
+		console.error(e)
+	}
+
+	// export const getProfileData = async uid => {
+	// 	try {
+	// 		const docRef = doc(db, "users", uid)
+	// 		const docSnapshot = await getDoc(docRef)
+	// 		const data = await docSnapshot.data()
+	// 		return data
+	// 	} catch (e) {
+	// 		console.error(e)
+	// 	}
+	// }
+}
 // export const searchProducts = async () => {
 // 	try {
 // 		const { hits } = await index.search(shoe, {

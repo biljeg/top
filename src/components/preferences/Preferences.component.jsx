@@ -8,7 +8,7 @@ export const currencyList = [
 	{ name: "EUR", rate: 0.95, symbol: "€" },
 	{ name: "GBP", rate: 0.82, symbol: "£" },
 ]
-const sizesList = ["US", "EU"]
+export const sizesList = ["US", "EU"]
 
 const Preferences = () => {
 	const { preferences, setPreferences } = useContext(AppContext)
@@ -19,7 +19,7 @@ const Preferences = () => {
 		if (name === "sizes") {
 			setPreferences(prevPreferences => ({
 				...prevPreferences,
-				sizes: value,
+				sizePreference: value,
 			}))
 		} else {
 			setPreferences(prevPreferences => ({

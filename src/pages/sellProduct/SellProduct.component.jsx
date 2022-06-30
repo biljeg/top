@@ -5,15 +5,24 @@ import { useMutation, useQuery, useQueryClient } from "react-query"
 import { useNavigate, useParams } from "react-router-dom"
 import { LoadingScreen } from "../../components/utils/Utils.component"
 import toast, { Toaster } from "react-hot-toast"
-import { useContext, useState, useEffect } from "react"
+import { useContext, useEffect, useState } from "react"
 import AppContext from "../../hooks/AppContext"
-import { Button } from "@mantine/core"
+import { Button, TextInput, NativeSelect } from "@mantine/core"
+import { useForm } from "react-hook-form"
+import { sizesList } from "../../components/preferences"
+import { sizeChart } from "../../hooks/constants"
 
 const SellProduct = () => {
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm()
 	const navigate = useNavigate()
 	const queryClient = useQueryClient()
 	const {
-		preferences: { sizes, currency },
+		preferences: { sizePreference, currency },
+		setPreferences,
 		isLoggedIn,
 		user,
 	} = useContext(AppContext)
@@ -23,44 +32,89 @@ const SellProduct = () => {
 		}
 	}, [])
 	const uid = user?.uid
-	const [selectedSize, setSelectedSize] = useState(null)
 	const { urlKey } = useParams()
 	const { data, isLoading, isError } = useQuery(
-		[`productDetails${urlKey}`, urlKey],
+		[`productDetails-${urlKey}`, urlKey],
 		() => getProduct(urlKey)
 	)
-	const handleClick = sizePreference => {
-		setSelectedSize(sizePreference)
-	}
 	const { mutate: createListing } = useMutation(newListing, {
 		onSuccess: () => {
 			queryClient.invalidateQueries("profile")
-			queryClient.invalidateQueries(`productDetails${urlKey}`)
+			queryClient.invalidateQueries(`productDetails-${urlKey}`)
 		},
 	})
-	const formatSize = size => {
-		const newSize = size[`size${sizes}`] //sizeEU for example
-		const newHighestBid = size[`highestBid${currency.name}`] //lowestAskUSD
-		return [newSize, newHighestBid]
-	}
-	const sell = async objectID => {
-		try {
-			const response = await createListing({ uid, objectID })
-			if (response === "Listing already exists") {
-				toast(response)
-			} else {
-				toast(response)
-				navigate("/")
-			}
-		} catch (e) {
-			console.error(e.message)
-		}
-	}
+
 	useEffect(() => {
 		if (!isLoggedIn) {
 			navigate("/login")
 		}
 	}, [])
+
+	const sizesToDisplay = () => {
+		let newSizes
+		if (sizePreference === "EU") {
+			newSizes = sizeChart.map(size => size.sizeEU)
+		} else {
+			newSizes = sizeChart.map(size => size.sizeUS)
+		}
+		return newSizes
+	}
+
+	const formatPrice = sellingPrice => {
+		let priceUSD
+		if (currency.name === "USD") {
+			priceUSD = sellingPrice
+		} else if (currency.name === "EUR") {
+			priceUSD = sellingPrice * 1.05
+		} else {
+			priceUSD = sellingPrice * 1.22
+		}
+		return priceUSD
+	}
+	const formatSize = selectedSize => {
+		let sizeUS
+		let sizeEU
+		if (sizePreference === "US") {
+			sizeUS = selectedSize
+			sizeEU = sizeChart.find(size => size.sizeUS === sizeUS).sizeEU
+		} else {
+			sizeEU = selectedSize
+			sizeUS = sizeChart.find(size => size.sizeEU === sizeEU).sizeUS
+		}
+		return {
+			sizeUS,
+			sizeEU,
+		}
+	}
+	const onSubmit = async ({ sellingPrice, selectedSize }) => {
+		try {
+			const sizeInfo = formatSize(selectedSize)
+			const priceUSD = formatPrice(sellingPrice)
+			const response = await createListing({
+				uid,
+				objectID: data.objectID,
+				sizeInfo,
+				data,
+				priceUSD: Number(priceUSD),
+			})
+			if (response === "Listing already exists") {
+				toast.error(response)
+			} else {
+				toast.success(response)
+				setTimeout(() => {
+					navigate("/")
+				}, 1500)
+			}
+		} catch (e) {
+			console.error(e.message)
+		}
+	}
+	const handleChange = e => {
+		setPreferences(prevPreferences => ({
+			...prevPreferences,
+			sizePreference: e.target.value,
+		}))
+	}
 	if (isLoading)
 		return (
 			<>
@@ -84,6 +138,10 @@ const SellProduct = () => {
 						Last sold: {currency.symbol}
 						{Math.floor(data.market.lastSale * currency.rate)}
 					</p>
+					<p>
+						Highest Bid: {currency.symbol}
+						{Math.floor(data.market.highestBid * currency.rate)}
+					</p>
 				</MarketDetails>
 				<ImgContainer>
 					<img src={data?.media.imageUrl} alt={data.title} />
@@ -91,42 +149,48 @@ const SellProduct = () => {
 			</ProductSection>
 			<BuySection>
 				<h2>Select size</h2>
-				<p>{sizes} Size | Highest Bid</p>
-				<strong>--here would be input box--</strong>
-				<SizeGrid>
-					{data.sizes.map((size, idx) => {
-						const [sizePreference, highestBid] = formatSize(size)
-						return (
-							<SizeContainer
-								key={idx}
-								onClick={() => handleClick(sizePreference)}
-							>
-								{selectedSize === sizePreference ? (
-									<SelectedSize>
-										<p>
-											{sizes} - {sizePreference}
-										</p>
-										<p>
-											{currency.symbol}
-											{highestBid}
-										</p>
-									</SelectedSize>
-								) : (
-									<Size>
-										<p>
-											{sizes} - {sizePreference}
-										</p>
-										<p>
-											{currency.symbol}
-											{highestBid}
-										</p>
-									</Size>
-								)}
-							</SizeContainer>
-						)
-					})}
-				</SizeGrid>
-				<Button onClick={() => sell()}>SELL</Button>
+				<p>
+					{currency.symbol} | {sizePreference} Size
+				</p>
+				<NativeSelect
+					value={sizePreference}
+					onChange={e => handleChange(e)}
+					data={sizesList}
+				/>
+				<form onSubmit={handleSubmit(onSubmit)}>
+					<TextInput
+						placeholder="Your price"
+						rightSection={
+							<InputRightSection>
+								{currency.name.toUpperCase()}
+							</InputRightSection>
+						}
+						rightSectionWidth={50}
+						type="number"
+						{...register("sellingPrice", {
+							required: true,
+							min: 20,
+							max: 10000,
+						})}
+					/>
+					{errors.sellingPrice?.type === "required" && (
+						<p>Selling price is required</p>
+					)}
+					{errors.sellingPrice?.type === "min" && <p>Enter at least 20.</p>}
+					{errors.sellingPrice?.type === "max" && (
+						<p>Enter a price below 10000.</p>
+					)}
+					<NativeSelect
+						data={sizesToDisplay()}
+						placeholder="Select size"
+						rightSection={
+							<InputRightSection>{sizePreference}</InputRightSection>
+						}
+						rightSectionWidth={50}
+						{...register("selectedSize", { required: true })}
+					/>
+					<Button type="submit">SELL</Button>
+				</form>
 			</BuySection>
 		</Container>
 	)
@@ -156,27 +220,10 @@ const BuySection = styled.div`
 	flex-direction: column;
 	align-items: center;
 `
-const SizeGrid = styled.div`
-	display: grid;
-	grid-template-columns: repeat(8, 1fr);
-	column-gap: 0.5rem;
-	row-gap: 0.25rem;
-`
 const MarketDetails = styled.div`
 	display: flex;
 	gap: 1rem;
 `
 const ImgContainer = styled.div``
 
-const Size = styled.div`
-	padding: 5px;
-	border: 1px solid black;
-`
-const SelectedSize = styled.div`
-	padding: 5px;
-	background-color: gray;
-	border: 1px solid black;
-`
-const SizeContainer = styled.div`
-	cursor: pointer;
-`
+const InputRightSection = styled.div``

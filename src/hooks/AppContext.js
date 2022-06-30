@@ -28,7 +28,7 @@ export const AppContextProvider = ({ children }) => {
 	const [loginError, setLoginError] = useState({ component: "", message: "" })
 	const [preferences, setPreferences] = useState({
 		currency: { name: "USD", rate: 1, symbol: "$" },
-		sizes: "EU",
+		sizePreference: "EU",
 	})
 	const ref = useRef(false)
 	const navigate = useNavigate()
@@ -40,7 +40,7 @@ export const AppContextProvider = ({ children }) => {
 		isError: isProfileError,
 	} = useQuery(["profile", uid], () => getProfileData(uid), {
 		enabled: !!uid,
-	})
+	}) // this part fails as well as auth.js line 42
 
 	const { mutate: createNewProfile } = useMutation(createUserDoc)
 	const { mutate: mutateLogOut } = useMutation(logOut, {
@@ -114,20 +114,20 @@ export const AppContextProvider = ({ children }) => {
 			if (profile) {
 				updatePrefMutation({ uid: uid, preferences: preferences })
 			}
-			localStorage.setItem("sizes", preferences.sizes)
+			localStorage.setItem("sizePreference", preferences.sizePreference)
 			localStorage.setItem("currency", preferences.currency.name)
 		} else {
 			ref.current = true
-			const savedSizes = localStorage.getItem("sizes")
+			const savedSizes = localStorage.getItem("sizePreference")
 			const savedCurrencyName = localStorage.getItem("currency")
 			const savedCurrency = currencyList.find(
 				item => item.name === savedCurrencyName
 			)
 			if (!savedSizes || !savedCurrencyName) {
-				localStorage.setItem("sizes", preferences.sizes)
+				localStorage.setItem("sizePreference", preferences.sizePreference)
 				localStorage.setItem("currency", preferences.currency.name)
 			} else {
-				setPreferences({ sizes: savedSizes, currency: savedCurrency })
+				setPreferences({ sizePreference: savedSizes, currency: savedCurrency })
 			}
 		}
 	}, [preferences])

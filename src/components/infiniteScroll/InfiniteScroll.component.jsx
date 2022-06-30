@@ -1,9 +1,9 @@
 import styled from "styled-components/macro"
 import { useInfiniteHits } from "react-instantsearch-hooks-web"
 import ProductCard from "../../components/productCard"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
-const InfiniteScroll = () => {
+const InfiniteScroll = ({ urlQuery }) => {
 	const { hits, isLastPage, showMore } = useInfiniteHits()
 	const sentinelRef = useRef(null)
 
@@ -27,26 +27,19 @@ const InfiniteScroll = () => {
 
 	return (
 		<>
-			{hits.length === 0 ? (
-				<div>
-					<p>No results found :(</p>
-					<p>Go back to store and find something you like</p>
-				</div>
-			) : (
-				<InfiniteScrollWrapper>
-					{hits.map(hit => (
-						<ProductCard
-							key={hit.objectID}
-							title={hit.title}
-							market={hit.market}
-							media={hit.media}
-							urlKey={hit.urlKey}
-							condition={hit.condition}
-						/>
-					))}
-					<div ref={sentinelRef} aria-hidden="true" />
-				</InfiniteScrollWrapper>
-			)}
+			<InfiniteScrollWrapper>
+				{hits.map(hit => (
+					<ProductCard
+						key={hit.objectID}
+						title={hit.title}
+						market={hit.market}
+						media={hit.media}
+						urlKey={hit.urlKey}
+						condition={hit.condition}
+					/>
+				))}
+				<div ref={sentinelRef} aria-hidden="true" />
+			</InfiniteScrollWrapper>
 		</>
 	)
 }

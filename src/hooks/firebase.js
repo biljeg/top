@@ -12,6 +12,7 @@ import {
 	query,
 	deleteDoc,
 	updateDoc,
+	serverTimestamp,
 } from "firebase/firestore/lite"
 import {
 	getAuth,
@@ -62,4 +63,5 @@ export {
 	updateDoc,
 	getFunctions,
 	httpsCallable,
+	serverTimestamp,
 }

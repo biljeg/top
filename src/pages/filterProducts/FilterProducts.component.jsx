@@ -52,7 +52,7 @@ const FilterProducts = () => {
 					<FilterSearchBar urlQuery={urlQuery} />
 					<SortBy />
 					<FilterMenu />
-					<InfiniteScroll />
+					<InfiniteScroll urlQuery={urlQuery} />
 					<Index indexName="sneakers" />
 				</InstantSearch>
 			</Content>
