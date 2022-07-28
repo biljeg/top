@@ -1,62 +1,37 @@
-import styled from "styled-components/macro"
+import { useLocation } from "react-router-dom"
 import { Index, InstantSearch } from "react-instantsearch-hooks-web"
-// import { history } from "instantsearch.js/es/lib/routers"
-import { searchClient } from "../../hooks/algolia"
+import styled from "styled-components/macro"
+
+import { searchClient } from "../../hooks/initServices"
 import InfiniteScroll from "../../components/infiniteScroll"
 import FilterSearchBar from "../../components/filterSearchBar"
-import { useLocation } from "react-router-dom"
 import SortBy from "../../components/sortBy"
 import FilterMenu from "../../components/filterMenu"
-// const routing = {
-// 	router: history(),
-// 	stateMapping: {
-// 		stateToRoute(uiState) {
-// 			const sneakersUiState = uiState.sneakers
-// 			return {
-// 				q: sneakersUiState.urlQuery,
-// 			}
-// 		},
-// 		routeToState(routeState) {
-// 			return {
-// 				sneakers: {
-// 					urlQuery: routeState.q,
-// 				},
-// 			}
-// 		},
-// 	},
-// }
-
-// index
-// 	.setSettings({
-// 		replicas: ["products_price_desc"],
-// 	})
-// 	.then(() => {
-// 		// done
-// 	})
 
 const FilterProducts = () => {
-	//<100, 100-200, 200-500, 500+
-
-	//filter by: category, price ranges,
-
 	const location = useLocation()
 	const urlQuery = location.state?.urlQuery
+
 	return (
-		<Main>
-			<Content>
-				<InstantSearch
-					indexName="sneakers"
-					searchClient={searchClient}
-					// routing={routing}
-				>
-					<FilterSearchBar urlQuery={urlQuery} />
-					<SortBy />
+		<InstantSearch indexName="sneakers" searchClient={searchClient}>
+			<Main>
+				<Aside>
 					<FilterMenu />
-					<InfiniteScroll urlQuery={urlQuery} />
+				</Aside>
+				<Content>
+					<SearchBarContainer>
+						<FilterSearchBar urlQuery={urlQuery} />
+					</SearchBarContainer>
+					<SortByWrapper>
+						<FilterMenu isMobile />
+						<SortBy />
+					</SortByWrapper>
+					<InfiniteScroll />
 					<Index indexName="sneakers" />
-				</InstantSearch>
-			</Content>
-		</Main>
+				</Content>
+				<Aside></Aside>
+			</Main>
+		</InstantSearch>
 	)
 }
 
@@ -65,17 +40,38 @@ export default FilterProducts
 const Main = styled.main`
 	display: flex;
 	width: 100%;
-	justify-content: center;
+	margin-top: 6rem;
+	@media (max-width: 800px) {
+		margin-top: 4rem;
+		justify-content: center;
+	}
 `
 
-const Content = styled.main`
+const Content = styled.section`
 	width: 100%;
-	@media (min-width: 800px) {
-		width: 80vw;
+`
+
+const Aside = styled.aside`
+	width: max(100px, 12.5vw);
+	@media (max-width: 800px) {
+		display: none;
 	}
-	@media (min-width: 1100px) {
-		width: min(70vw, 1100px);
+`
+
+const SortByWrapper = styled.div`
+	width: 100%;
+	display: flex;
+	justify-content: flex-end;
+	@media (max-width: 800px) {
+		justify-content: space-between;
+		padding-inline: 1rem;
+		align-items: center;
 	}
-	flex-direction: column;
+`
+
+const SearchBarContainer = styled.div`
+	width: 100%;
+	display: flex;
 	justify-content: center;
+	margin-bottom: 3rem;
 `

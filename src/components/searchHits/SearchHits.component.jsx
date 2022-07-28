@@ -1,7 +1,8 @@
-import styled from "styled-components/macro"
-import { Highlight, useHits } from "react-instantsearch-hooks-web"
-import { Link } from "react-router-dom"
 import { useContext } from "react"
+import { Link } from "react-router-dom"
+import { useHits } from "react-instantsearch-hooks-web"
+import styled from "styled-components/macro"
+
 import AppContext from "../../hooks/AppContext"
 
 const SearchHits = ({ query, isSellPage }) => {
@@ -13,67 +14,112 @@ const SearchHits = ({ query, isSellPage }) => {
 	if (hits.length === 0) {
 		return null
 	}
+
 	if (query === "") return null
 	if (isSellPage) {
 		return (
-			<SearchHitsWrapperSell>
+			<SellHitsWrapper>
 				{hits.map(hit => (
 					<Link to={`/sell/${hit.urlKey}`} key={hit.objectID}>
-						<HitWrapper>
+						<SellHit>
 							<HitImg>
-								<img src={hit.media.smallImageUrl} alt={hit.title} />
+								<img src={hit.media.smallImageUrl} alt="product thumbnail" />
 							</HitImg>
-							<h4>
-								<Highlight attribute="title" hit={hit} />
-							</h4>
-						</HitWrapper>
+							<P>{hit.title}</P>
+						</SellHit>
 					</Link>
 				))}
-			</SearchHitsWrapperSell>
+			</SellHitsWrapper>
 		)
 	}
+
 	return (
-		<SearchHitsWrapper>
+		<HeaderHitsWrapper>
 			{hits.map(hit => (
 				<Link to={`/sneakers/${hit.urlKey}`} key={hit.objectID}>
-					<HitWrapper>
+					<HeaderHit>
 						<HitImg>
-							<img src={hit.media.smallImageUrl} alt={hit.title} />
+							<img src={hit.media.smallImageUrl} alt="product thumbnail" />
 						</HitImg>
-						<h4>
-							<Highlight attribute="title" hit={hit} />
-						</h4>
-						<p>
-							{currency.symbol}
-							{Math.floor(hit.market.lastSale * currency.rate)}
-						</p>
-					</HitWrapper>
+						<P>{hit.title}</P>
+					</HeaderHit>
 				</Link>
 			))}
-		</SearchHitsWrapper>
+		</HeaderHitsWrapper>
 	)
 }
 
 export default SearchHits
 
-const SearchHitsWrapper = styled.div`
+const HeaderHitsWrapper = styled.div`
+	position: absolute;
+	z-index: 100;
+	background-color: white;
+	border-left: 1px solid black;
+	width: min(800px, 40vw);
+	@media (max-width: 750px) {
+		width: 80vw;
+	}
+	@media (min-width: 750px) and (max-width: 900px) {
+		width: 50vw;
+	}
+	@media (max-width: ${props => props.theme.breakpoints.tablet}) {
+		transform: translateY(30px);
+	}
+`
+
+const HeaderHit = styled.div`
+	display: grid;
+	grid-template-columns: 80px 1fr;
+	align-items: center;
+	border-bottom: 1px solid black;
+	border-right: 1px solid black;
+	padding: 15px;
+	@media (max-width: 600px) {
+		padding: 10px 15px;
+		grid-template-columns: 70px 1fr;
+	}
+`
+
+const SellHitsWrapper = styled.div`
 	position: absolute;
 	background-color: white;
+	max-width: 100%;
+	border-left: 1px solid black;
+	width: 100%;
+	@media (min-width: 550px) {
+		width: min(60vw, 450px);
+	}
+	@media (min-width: 1000px) {
+		width: min(40vw, 600px);
+	}
 `
 
-const SearchHitsWrapperSell = styled.div`
-	position: absolute;
-	transform: translateY(60%);
-
-	background-color: white;
+const SellHit = styled.div`
+	display: grid;
+	grid-template-columns: 80px 1fr;
+	align-items: center;
+	border-bottom: 1px solid black;
+	border-right: 1px solid black;
+	padding: 15px;
+	@media (max-width: 600px) {
+		padding: 10px 15px;
+		grid-template-columns: 70px 1fr;
+	}
 `
 
-const HitWrapper = styled.div`
-	display: flex;
-	height: 50px;
-	width: 450px;
-`
-const HitImg = styled.div`
-	width: 70px;
-	height: 60px;
+const HitImg = styled.div``
+
+const P = styled.p`
+	font-size: 1.5rem;
+	margin-left: 2rem;
+	height: 40px;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	@media (max-width: 600px) {
+		font-size: 1.3rem;
+		height: 32px;
+	}
 `

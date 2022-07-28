@@ -27,18 +27,20 @@ export default FilterSearchBar
 
 const Input = styled.input`
 	border: 0;
-	width: min(800px, 40vw);
-	font-size: 16px;
+	width: 100%;
+	font-size: 1.5rem;
 	&:focus {
 		outline: none;
-	}
-	@media (max-width: 600px) {
-		width: 70vw;
 	}
 `
 const InputWrapper = styled.div`
 	height: 30px;
 	line-height: 2;
-	font-family: "Barlow Condensed", sans-serif;
+	width: 100%;
+	/* font-family: "Barlow Condensed", sans-serif; */
 	border-bottom: 1px solid black;
+	width: 90vw;
+	@media (min-width: 800px) {
+		width: 100%;
+	}
 `

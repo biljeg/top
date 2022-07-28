@@ -1,4 +1,6 @@
 import { useState, useEffect, createContext, useRef } from "react"
+import { useQuery, useQueryClient } from "react-query"
+import { useNavigate } from "react-router-dom"
 import {
 	onAuthStateChanged,
 	getAuth,
@@ -7,49 +9,40 @@ import {
 	signInWithPopup,
 	provider,
 } from "./firebase"
-import { useNavigate } from "react-router-dom"
-import { useQuery, useQueryClient, useMutation } from "react-query"
 import {
 	getProfileData,
-	createUserDoc,
-	logOut,
-	updatePreferences,
+	useCreateUserDoc,
+	useLogOut,
+	useUpdatePreferences,
 } from "./auth"
-import { currencyList } from "../components/preferences"
+import { currencyList } from "./constants.js"
 
 const auth = getAuth()
 const AppContext = createContext()
 
 export const AppContextProvider = ({ children }) => {
-	const [userData, setUserData] = useState({
-		user: null,
-		isLoggedIn: false,
-	})
+	const [user, setUser] = useState(null)
 	const [loginError, setLoginError] = useState({ component: "", message: "" })
 	const [preferences, setPreferences] = useState({
-		currency: { name: "USD", rate: 1, symbol: "$" },
 		sizePreference: "EU",
+		currency: { name: "USD", rate: 1, symbol: "$" },
 	})
+	const [isAuthLoading, setIsAuthLoading] = useState(true)
+	const [uid, setUid] = useState(null)
 	const ref = useRef(false)
+
 	const navigate = useNavigate()
 	const queryClient = useQueryClient()
-	const uid = userData.user?.uid
 	const {
 		data: profile,
 		isLoading: isProfileLoading,
 		isError: isProfileError,
 	} = useQuery(["profile", uid], () => getProfileData(uid), {
 		enabled: !!uid,
-	}) // this part fails as well as auth.js line 42
-
-	const { mutate: createNewProfile } = useMutation(createUserDoc)
-	const { mutate: mutateLogOut } = useMutation(logOut, {
-		onSuccess: () => {
-			queryClient.invalidateQueries("profile")
-		},
 	})
-
-	const { mutate: updatePrefMutation } = useMutation(updatePreferences)
+	const { mutateAsync: createUserDoc } = useCreateUserDoc()
+	const { mutateAsync: logOut } = useLogOut()
+	const { mutateAsync: updatePreferences } = useUpdatePreferences()
 
 	const signUp = async (email, password, username) => {
 		try {
@@ -59,7 +52,7 @@ export const AppContextProvider = ({ children }) => {
 				password
 			)
 			const uid = userCredential.user.uid
-			await createNewProfile({ uid, email, username, preferences })
+			await createUserDoc({ uid, email, username, preferences })
 			navigate("/")
 		} catch (error) {
 			if (error.code === "auth/email-already-in-use") {
@@ -70,6 +63,7 @@ export const AppContextProvider = ({ children }) => {
 			}
 		}
 	}
+
 	const logIn = async (email, password) => {
 		try {
 			await signInWithEmailAndPassword(auth, email, password)
@@ -83,36 +77,47 @@ export const AppContextProvider = ({ children }) => {
 			}
 		}
 	}
+
 	const googleSignIn = async () => {
 		try {
 			const userCredential = await signInWithPopup(auth, provider)
 			const uid = userCredential.user.uid
 			const email = userCredential.user.email
-			await createNewProfile({ uid, email, preferences })
+			await createUserDoc({ uid, email, preferences })
 			navigate("/")
 		} catch (e) {
 			console.error(e)
 		}
 	}
+
 	const signOut = async () => {
-		await mutateLogOut()
+		await logOut()
+		queryClient.invalidateQueries("profile")
 		navigate("/")
 	}
 
 	useEffect(() => {
-		onAuthStateChanged(auth, user => {
-			if (user) {
-				setUserData({ user: user, isLoggedIn: true })
-			} else {
-				setUserData({ user: null, isLoggedIn: false })
-			}
-		})
-	}, [])
+		if (auth) {
+			const unsubscribe = onAuthStateChanged(auth, user => {
+				if (user) {
+					setUser(user)
+					setUid(user.uid)
+				} else {
+					setUser(null)
+					setUid(null)
+				}
+				setIsAuthLoading(false)
+			})
+			return unsubscribe
+		}
+	}, [auth])
 
 	useEffect(() => {
+		if (isAuthLoading) return
 		if (ref.current) {
 			if (profile) {
-				updatePrefMutation({ uid: uid, preferences: preferences })
+				updatePreferences({ uid, preferences })
+				queryClient.invalidateQueries("profile")
 			}
 			localStorage.setItem("sizePreference", preferences.sizePreference)
 			localStorage.setItem("currency", preferences.currency.name)
@@ -123,17 +128,23 @@ export const AppContextProvider = ({ children }) => {
 			const savedCurrency = currencyList.find(
 				item => item.name === savedCurrencyName
 			)
-			if (!savedSizes || !savedCurrencyName) {
+			if (profile) {
+				setPreferences(profile.preferences)
 				localStorage.setItem("sizePreference", preferences.sizePreference)
 				localStorage.setItem("currency", preferences.currency.name)
-			} else {
+			} else if (savedSizes && savedCurrencyName) {
 				setPreferences({ sizePreference: savedSizes, currency: savedCurrency })
+			} else {
+				localStorage.setItem("sizePreference", preferences.sizePreference)
+				localStorage.setItem("currency", preferences.currency.name)
 			}
 		}
-	}, [preferences])
+	}, [preferences, isAuthLoading, profile])
 
 	const values = {
-		...userData,
+		user,
+		isAuthLoading,
+		uid,
 		preferences,
 		setPreferences,
 		profile,

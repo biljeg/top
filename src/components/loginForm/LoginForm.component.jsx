@@ -3,9 +3,13 @@ import { useForm } from "react-hook-form"
 import { TextInput, Button, PasswordInput } from "@mantine/core"
 import { useState, useEffect, useContext } from "react"
 import { Link } from "react-router-dom"
+import { TailSpin } from "react-loading-icons"
+
 import AppContext from "../../hooks/AppContext"
 
 const LoginForm = ({ isLoginPage, action }) => {
+	const [isLoading, setIsLoading] = useState(false)
+	const { loginError } = useContext(AppContext)
 	const {
 		register,
 		handleSubmit,
@@ -18,26 +22,26 @@ const LoginForm = ({ isLoginPage, action }) => {
 			password: "",
 		},
 	})
-	const { loginError, signOut } = useContext(AppContext)
-	const [loading, setLoading] = useState(false)
+
 	useEffect(() => {
 		if (isLoginPage) {
 			unregister("username")
 		}
 	}, [isLoginPage])
 
-	const onSubmit = data => {
-		//submit button displays 3 dots if it is loading
-		setLoading(true)
-		action(data.email, data.password, data.username)
-		setLoading(false)
+	const onSubmit = async data => {
+		setIsLoading(true)
+		await action(data.email, data.password, data.username)
+		setIsLoading(false)
 	}
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)}>
+		<Form onSubmit={handleSubmit(onSubmit)}>
 			{!isLoginPage && (
-				<div>
-					<label htmlFor="username">Your Username</label>
+				<InputContainer>
+					<LabelContainer>
+						<label htmlFor="username">Your Username</label>
+					</LabelContainer>
 					<TextInput
 						placeholder="Your username"
 						id="Username"
@@ -50,10 +54,12 @@ const LoginForm = ({ isLoginPage, action }) => {
 							required: "This field is required",
 						})}
 					/>
-				</div>
+				</InputContainer>
 			)}
-			<div>
-				<label htmlFor="email">Your Email</label>
+			<InputContainer>
+				<LabelContainer>
+					<label htmlFor="email">Your Email</label>
+				</LabelContainer>
 				<TextInput
 					id="email"
 					error={
@@ -70,18 +76,20 @@ const LoginForm = ({ isLoginPage, action }) => {
 						required: "This field is required",
 						pattern: {
 							value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-							message: "invalid email address",
+							message: "Invalid email address",
 						},
 					})}
 				/>
-			</div>
-			<div>
-				<ForgotPasswordWrapper>
+			</InputContainer>
+			<InputContainer noMargin>
+				<LabelContainer>
 					<label htmlFor="password">Your Password</label>
 					{isLoginPage && (
-						<Link to="/reset-password">Forgot your password?</Link>
+						<Link to="/reset-password">
+							<ForgotPassword>Forgot your password?</ForgotPassword>
+						</Link>
 					)}
-				</ForgotPasswordWrapper>
+				</LabelContainer>
 				<PasswordInput
 					placeholder="Your password"
 					error={
@@ -102,20 +110,72 @@ const LoginForm = ({ isLoginPage, action }) => {
 						},
 					})}
 				/>
-			</div>
-			<Button type="submit">{isLoginPage ? "Login" : "Sign Up"}</Button>
-			{loginError && <div>{loginError.message}</div>}
-		</form>
+			</InputContainer>
+			<Button
+				uppercase
+				styles={{
+					root: {
+						borderRadius: "2px",
+						fontWeight: 600,
+					},
+					filled: {
+						backgroundColor: "#101010",
+						"&:hover": {
+							backgroundColor: "#101010",
+							opacity: 0.9,
+						},
+						"&:active": {
+							backgroundColor: "#101010",
+							opacity: 0.9,
+						},
+					},
+				}}
+				style={{
+					marginTop: "3rem",
+				}}
+				type="submit"
+			>
+				{isLoading ? (
+					<TailSpin height="25px" width="25px" stroke="#fff" />
+				) : isLoginPage ? (
+					"Login"
+				) : (
+					"Register"
+				)}
+			</Button>
+			{loginError && <ErrorMessage>{loginError.message}</ErrorMessage>}
+		</Form>
 	)
 }
 
 export default LoginForm
-//google sign up makes account with random username (user109281094800)
 
-//check if the user already has an account and tries to sign up that it throws
-//an error that can be displayed (or if tries to log in but no account found)
+const Form = styled.form`
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+`
 
-const ForgotPasswordWrapper = styled.div`
+const LabelContainer = styled.div`
 	display: flex;
 	justify-content: space-between;
+	margin-bottom: 0.5rem;
+	font-size: 1.2rem;
+`
+
+const ForgotPassword = styled.p`
+	font-size: 1rem;
+	&:hover {
+		text-decoration: underline;
+	}
+`
+
+const InputContainer = styled.div`
+	margin-bottom: ${({ noMargin }) => (noMargin ? "0" : "1.5rem")};
+`
+
+const ErrorMessage = styled.p`
+	margin-top: 0.5rem;
+	font-size: 1.2rem;
+	color: #f03e3e;
 `

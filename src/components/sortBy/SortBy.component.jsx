@@ -1,17 +1,19 @@
-import styled from "styled-components/macro"
-import { useSortBy } from "react-instantsearch-hooks-web"
-import { NativeSelect } from "@mantine/core"
 import { useEffect, useState } from "react"
+import { useSortBy } from "react-instantsearch-hooks-web"
+import styled from "styled-components/macro"
+import { NativeSelect } from "@mantine/core"
+
+import ArrowSelect from "../../assets/icons/arrow-select.svg"
 
 const SortBy = () => {
 	const [value, setValue] = useState("Feature")
-	const { currentRefinement, refine, hasNoResults } = useSortBy({
+	const { currentRefinement, refine } = useSortBy({
 		items: [
 			{ label: "Featured", value: "sneakers" },
-			{ label: "Price (asc)", value: "sneakers_price_asc" },
-			{ label: "Price (desc)", value: "sneakers_price_desc" },
 			{ label: "Popular", value: "sneakers_popular" },
 			{ label: "Recent", value: "sneakers_recent" },
+			{ label: "Price (asc)", value: "sneakers_price_asc" },
+			{ label: "Price (desc)", value: "sneakers_price_desc" },
 		],
 	})
 
@@ -40,21 +42,36 @@ const SortBy = () => {
 			refine(refinement)
 		}
 	}, [value])
-	// initialIndex = "Featured"
-	// if has no results display no results found :(
+
 	return (
-		<div>
-			<NativeSelect
-				data={["Featured", "Price (asc)", "Price (desc)", "Popular", "Recent"]}
-				value={value}
-				onChange={event => setValue(event.currentTarget.value)}
-			/>
-		</div>
+		<NativeSelect
+			data={["Featured", "Popular", "Recent", "Price (asc)", "Price (desc)"]}
+			value={value}
+			onChange={event => setValue(event.currentTarget.value)}
+			size="xs"
+			rightSection={
+				<div>
+					<img src={ArrowSelect} alt="" />
+				</div>
+			}
+			styles={{
+				defaultVariant: {
+					border: "none",
+					padding: "0 !important",
+					fontSize: "1.3rem !important",
+					fontFamily: "Mulish, sans-serif !important",
+					fontWeight: "500",
+				},
+				filledVariant: {
+					border: "1px solid black",
+				},
+				rightSection: {
+					width: "15px",
+				},
+				root: { width: "90px", marginBlock: "5px" },
+			}}
+		/>
 	)
 }
 
 export default SortBy
-//build a sort ui
-//make it controlled
-//if the value of the selected is not the same as the currentRefinement then refine
-//test the hasNoResults with search

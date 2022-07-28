@@ -1,15 +1,15 @@
 import { useState } from "react"
-import styled from "styled-components/macro"
 import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
+import styled from "styled-components/macro"
 import { Button, TextInput } from "@mantine/core"
 
 import { getAuth, sendPasswordResetEmail } from "../../hooks/firebase"
-
 const auth = getAuth()
 
 const ResetPassword = () => {
 	const [status, setStatus] = useState({ message: null, isLoading: false })
+
 	const navigate = useNavigate()
 	const {
 		register,
@@ -20,6 +20,7 @@ const ResetPassword = () => {
 			email: "",
 		},
 	})
+
 	const onSubmit = async data => {
 		try {
 			setStatus(prevStatus => ({ ...prevStatus, isLoading: true }))
@@ -29,15 +30,12 @@ const ResetPassword = () => {
 		} catch (error) {
 			const errorMessage = error.message
 			setStatus({ message: "Error, please try again", isLoading: false })
-			{
-				/* say check if you have account with this email?*/
-			}
 		}
 	}
 
 	return (
 		<div>
-			<h1>Enter your email</h1>
+			<H1>Enter your email</H1>
 			<form onSubmit={handleSubmit(onSubmit)}>
 				<TextInput
 					label="email"
@@ -52,10 +50,6 @@ const ResetPassword = () => {
 						},
 					})}
 				/>
-				{/* if is loading, set button's content to 3 dots loading */}
-				{/* if the action is successful, display green success text */}
-				{/* if the action is with error, display the error or 
-        please try again in red */}
 				<Button type="submit">Submit</Button>
 			</form>
 		</div>
@@ -63,3 +57,7 @@ const ResetPassword = () => {
 }
 
 export default ResetPassword
+
+const H1 = styled.h1`
+	font-size: 2.8rem;
+`

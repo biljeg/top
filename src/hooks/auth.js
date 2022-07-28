@@ -9,6 +9,7 @@ import {
 	deleteDoc,
 	updateDoc,
 } from "./firebase"
+import { useMutation } from "react-query"
 
 const db = getFirestore()
 const auth = getAuth()
@@ -18,7 +19,7 @@ const makeUsername = () => {
 	return `user${rand}`
 }
 
-export const createUserDoc = async ({
+const createUserDoc = async ({
 	uid,
 	email,
 	username = makeUsername(),
@@ -26,7 +27,7 @@ export const createUserDoc = async ({
 }) => {
 	const docRef = doc(db, "users", uid)
 	const docSnapshot = await getDoc(docRef)
-	if (docSnapshot._document) return
+	if (docSnapshot.exists()) return
 
 	await setDoc(docRef, {
 		uid: uid,
@@ -47,7 +48,7 @@ export const getProfileData = async uid => {
 	}
 }
 
-export const updateProfile = async ({ uid, username }) => {
+const updateProfile = async ({ uid, username }) => {
 	try {
 		const docRef = doc(db, "users", uid)
 		await updateDoc(docRef, {
@@ -58,24 +59,44 @@ export const updateProfile = async ({ uid, username }) => {
 	}
 }
 
-export const updatePreferences = async ({ uid, preferences }) => {
+const updatePreferences = async ({ uid, preferences }) => {
 	try {
 		const docRef = doc(db, "users", uid)
 		await updateDoc(docRef, {
-			preferences,
+			preferences: preferences,
 		})
 	} catch (e) {
 		console.error(e)
 	}
 }
 
-export const logOut = async () => {
+const logOut = async () => {
 	await signOut(auth)
 }
 
-export const deleteAcc = async ({ user }) => {
+const deleteAccount = async ({ user }) => {
 	const uid = user.uid
 	const docRef = doc(db, "users", uid)
 	await deleteUser(user)
 	await deleteDoc(docRef)
+}
+
+export const useDeleteAccount = () => {
+	return useMutation(deleteAccount)
+}
+
+export const useUpdateProfile = () => {
+	return useMutation(updateProfile)
+}
+
+export const useCreateUserDoc = () => {
+	return useMutation(createUserDoc)
+}
+
+export const useUpdatePreferences = () => {
+	return useMutation(updatePreferences)
+}
+
+export const useLogOut = () => {
+	return useMutation(logOut)
 }

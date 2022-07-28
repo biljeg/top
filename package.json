@@ -9,9 +9,10 @@
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.5.0",
     "algolia-search": "^2.0.1",
+    "disable-scroll": "^0.6.0",
     "firebase": "^9.8.2",
-    "nanoid": "^4.0.0",
     "react": "^18.1.0",
+    "react-burger-menu": "^3.0.8",
     "react-dom": "^18.1.0",
     "react-hook-form": "^7.32.2",
     "react-hot-toast": "^2.2.0",
@@ -22,7 +23,9 @@
     "react-query": "^3.39.1",
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
+    "react-select": "^5.4.0",
     "styled-components": "^5.3.5",
+    "swiper": "^8.3.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

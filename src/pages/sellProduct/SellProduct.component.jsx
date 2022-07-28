@@ -1,18 +1,29 @@
-import styled from "styled-components/macro"
-import { getProduct } from "../../hooks/getData"
-import { newListing } from "../../hooks/createDocs"
-import { useMutation, useQuery, useQueryClient } from "react-query"
+import { useContext, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { LoadingScreen } from "../../components/utils/Utils.component"
-import toast, { Toaster } from "react-hot-toast"
-import { useContext, useEffect, useState } from "react"
-import AppContext from "../../hooks/AppContext"
-import { Button, TextInput, NativeSelect } from "@mantine/core"
+import { useQueryClient } from "react-query"
 import { useForm } from "react-hook-form"
-import { sizesList } from "../../components/preferences"
-import { sizeChart } from "../../hooks/constants"
+import styled from "styled-components/macro"
+import { Button, TextInput, NativeSelect } from "@mantine/core"
+import toast, { Toaster } from "react-hot-toast"
+
+import { useProductDetails, useNewListing } from "../../hooks/api"
+import AppContext from "../../hooks/AppContext"
+import { sizesList } from "../../hooks/constants"
+import { Content, LoadingScreen } from "../../components/utils"
+import {
+	formatSize,
+	formatPrice,
+	sizesToDisplay,
+} from "../../hooks/helperFunctions"
 
 const SellProduct = () => {
+	const {
+		preferences: { sizePreference, currency },
+		setPreferences,
+		user,
+		isAuthLoading,
+		uid,
+	} = useContext(AppContext)
 	const {
 		register,
 		handleSubmit,
@@ -20,77 +31,16 @@ const SellProduct = () => {
 	} = useForm()
 	const navigate = useNavigate()
 	const queryClient = useQueryClient()
-	const {
-		preferences: { sizePreference, currency },
-		setPreferences,
-		isLoggedIn,
-		user,
-	} = useContext(AppContext)
-	useEffect(() => {
-		if (!isLoggedIn) {
-			navigate("/login")
-		}
-	}, [])
-	const uid = user?.uid
 	const { urlKey } = useParams()
-	const { data, isLoading, isError } = useQuery(
-		[`productDetails-${urlKey}`, urlKey],
-		() => getProduct(urlKey)
-	)
-	const { mutate: createListing } = useMutation(newListing, {
-		onSuccess: () => {
-			queryClient.invalidateQueries("profile")
-			queryClient.invalidateQueries(`productDetails-${urlKey}`)
-		},
-	})
 
-	useEffect(() => {
-		if (!isLoggedIn) {
-			navigate("/login")
-		}
-	}, [])
+	const { data, isLoading, isError } = useProductDetails(urlKey)
+	const { mutateAsync: newListing } = useNewListing()
 
-	const sizesToDisplay = () => {
-		let newSizes
-		if (sizePreference === "EU") {
-			newSizes = sizeChart.map(size => size.sizeEU)
-		} else {
-			newSizes = sizeChart.map(size => size.sizeUS)
-		}
-		return newSizes
-	}
-
-	const formatPrice = sellingPrice => {
-		let priceUSD
-		if (currency.name === "USD") {
-			priceUSD = sellingPrice
-		} else if (currency.name === "EUR") {
-			priceUSD = sellingPrice * 1.05
-		} else {
-			priceUSD = sellingPrice * 1.22
-		}
-		return priceUSD
-	}
-	const formatSize = selectedSize => {
-		let sizeUS
-		let sizeEU
-		if (sizePreference === "US") {
-			sizeUS = selectedSize
-			sizeEU = sizeChart.find(size => size.sizeUS === sizeUS).sizeEU
-		} else {
-			sizeEU = selectedSize
-			sizeUS = sizeChart.find(size => size.sizeEU === sizeEU).sizeUS
-		}
-		return {
-			sizeUS,
-			sizeEU,
-		}
-	}
 	const onSubmit = async ({ sellingPrice, selectedSize }) => {
 		try {
-			const sizeInfo = formatSize(selectedSize)
-			const priceUSD = formatPrice(sellingPrice)
-			const response = await createListing({
+			const sizeInfo = formatSize(selectedSize, sizePreference)
+			const priceUSD = formatPrice(sellingPrice, currency)
+			const response = await newListing({
 				uid,
 				objectID: data.objectID,
 				sizeInfo,
@@ -101,6 +51,8 @@ const SellProduct = () => {
 				toast.error(response)
 			} else {
 				toast.success(response)
+				queryClient.invalidateQueries("profile")
+				queryClient.invalidateQueries(`productDetails-${urlKey}`)
 				setTimeout(() => {
 					navigate("/")
 				}, 1500)
@@ -115,115 +67,237 @@ const SellProduct = () => {
 			sizePreference: e.target.value,
 		}))
 	}
+
+	useEffect(() => {
+		if (isAuthLoading) return
+		if (!user) {
+			navigate("/login")
+		}
+	}, [isAuthLoading, user])
+
 	if (isLoading)
 		return (
 			<>
 				<LoadingScreen />
 			</>
 		)
-	//error utility class that says error while fetching please reload
 	if (isError) return <div>Error, please try again</div>
 	return (
-		//make this also an utility class
-		<Container>
+		<Content
+			widthMobile="95vw"
+			widthTablet="90vw"
+			widthDesktop="min(85vw, 1200px)"
+		>
 			<Toaster />
-			<ProductSection>
-				<H1>{data.title}</H1>
-				<MarketDetails>
-					<p>
-						Lowest Ask: {currency.symbol}
-						{Math.floor(data.market.lowestAsk * currency.rate)}
-					</p>
-					<p>
-						Last sold: {currency.symbol}
-						{Math.floor(data.market.lastSale * currency.rate)}
-					</p>
-					<p>
-						Highest Bid: {currency.symbol}
-						{Math.floor(data.market.highestBid * currency.rate)}
-					</p>
-				</MarketDetails>
-				<ImgContainer>
-					<img src={data?.media.imageUrl} alt={data.title} />
-				</ImgContainer>
-			</ProductSection>
-			<BuySection>
-				<h2>Select size</h2>
-				<p>
-					{currency.symbol} | {sizePreference} Size
-				</p>
-				<NativeSelect
-					value={sizePreference}
-					onChange={e => handleChange(e)}
-					data={sizesList}
-				/>
-				<form onSubmit={handleSubmit(onSubmit)}>
-					<TextInput
-						placeholder="Your price"
-						rightSection={
-							<InputRightSection>
-								{currency.name.toUpperCase()}
-							</InputRightSection>
-						}
-						rightSectionWidth={50}
-						type="number"
-						{...register("sellingPrice", {
-							required: true,
-							min: 20,
-							max: 10000,
-						})}
-					/>
-					{errors.sellingPrice?.type === "required" && (
-						<p>Selling price is required</p>
-					)}
-					{errors.sellingPrice?.type === "min" && <p>Enter at least 20.</p>}
-					{errors.sellingPrice?.type === "max" && (
-						<p>Enter a price below 10000.</p>
-					)}
-					<NativeSelect
-						data={sizesToDisplay()}
-						placeholder="Select size"
-						rightSection={
-							<InputRightSection>{sizePreference}</InputRightSection>
-						}
-						rightSectionWidth={50}
-						{...register("selectedSize", { required: true })}
-					/>
-					<Button type="submit">SELL</Button>
-				</form>
-			</BuySection>
-		</Container>
+			<PageWrapper>
+				<ProductSection>
+					<TextContainer>
+						<H1>{data.title}</H1>
+						<P>
+							Lowest Ask: {currency.symbol}
+							{data.market.lowestAsk
+								? Math.trunc(data.market.lowestAsk * currency.rate)
+								: "--"}
+							{" | "}
+							Last Sale: {currency.symbol}
+							{data.market.lastSale
+								? Math.trunc(data.market.lastSale * currency.rate)
+								: "--"}
+						</P>
+						{/*
+						this goes in sell section
+						<p>
+							Highest Bid: {currency.symbol}
+							{Math.trunc(data.market.highestBid * currency.rate)}
+						</p> */}
+					</TextContainer>
+					<ImgContainer>
+						<img src={data?.media.imageUrl} alt="product" />
+					</ImgContainer>
+				</ProductSection>
+				<SellSection>
+					<H2 style={{ marginBottom: "0.2rem" }}>Sell Item</H2>
+					<P>
+						{currency.name} - {sizePreference} Sizes
+					</P>
+					<SellForm onSubmit={handleSubmit(onSubmit)}>
+						<InputContainer>
+							<InputWrapper>
+								<Label for="select-input">Select Size</Label>
+								<NativeSelect
+									id="select-input"
+									style={{ marginBottom: "1rem" }}
+									data={sizesToDisplay(sizePreference)}
+									placeholder="Select size"
+									rightSection={<div>{sizePreference}</div>}
+									rightSectionWidth={50}
+									{...register("selectedSize", { required: true })}
+								/>
+							</InputWrapper>
+							{errors.sellingPrice?.type === "required" && (
+								<p>Selling price is required</p>
+							)}
+							{errors.sellingPrice?.type === "min" && <p>Enter at least 20.</p>}
+							{errors.sellingPrice?.type === "max" && (
+								<p>Enter a price below 10000.</p>
+							)}
+							<InputWrapper>
+								<Label for="text-input">Input price</Label>
+								<TextInput
+									style={{ marginBottom: "1rem", width: "100%" }}
+									id="text-input"
+									placeholder="Your price"
+									rightSection={<div>{currency.name.toUpperCase()}</div>}
+									rightSectionWidth={50}
+									type="number"
+									{...register("sellingPrice", {
+										required: true,
+										min: 20,
+										max: 10000,
+									})}
+								/>
+							</InputWrapper>
+						</InputContainer>
+						<SellButton
+							style={{ width: "100%" }}
+							styles={{
+								root: {
+									borderRadius: "2px",
+									fontWeight: 600,
+								},
+								filled: {
+									backgroundColor: "#101010",
+									"&:hover": {
+										backgroundColor: "#101010",
+										opacity: 0.9,
+									},
+									"&:active": {
+										backgroundColor: "#101010",
+										opacity: 0.9,
+									},
+								},
+							}}
+							type="submit"
+						>
+							Sell
+						</SellButton>
+					</SellForm>
+				</SellSection>
+			</PageWrapper>
+		</Content>
 	)
 }
 
 export default SellProduct
 
-const Container = styled.section`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+const SellButton = styled(Button)`
+	text-transform: uppercase;
+	margin-top: 1rem;
+	@media (max-width: 800px) {
+		width: 100%;
+	}
+`
+
+const PageWrapper = styled.div`
 	width: 100%;
+	display: grid;
+	grid-template-rows: 73px 1fr;
+	@media (min-width: 750px) {
+		grid-template-rows: 1fr;
+		grid-template-columns: 60% 40%;
+	}
 `
 
 const ProductSection = styled.div`
+	display: grid;
+	grid-template-columns: 100px 1fr;
+	border: 1px solid black;
+	@media (min-width: 750px) {
+		border: none;
+		grid-template-rows: 1fr 4fr;
+		grid-template-columns: 1fr;
+	}
+`
+
+const SellSection = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	width: 50vw;
-	border-bottom: 1px solid black;
+	margin-top: 1rem;
 `
-const H1 = styled.h1`
-	font-size: 32px;
+
+const SellForm = styled.form`
+	margin-top: 1.5rem;
 `
-const BuySection = styled.div`
+
+const InputWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
-	align-items: center;
+	gap: 0.5rem;
 `
-const MarketDetails = styled.div`
+
+const InputContainer = styled.div`
 	display: flex;
 	gap: 1rem;
+	flex-direction: column;
 `
-const ImgContainer = styled.div``
 
-const InputRightSection = styled.div``
+const H1 = styled.h1`
+	font-size: 1.4rem;
+	max-width: 300px;
+	@media (min-width: 750px) {
+		font-size: 2.8rem;
+		height: 38px;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		max-width: none;
+	}
+`
+
+const H2 = styled.h2`
+	font-size: 1.8rem;
+	@media (min-width: 750px) {
+		margin-top: none;
+		font-size: 2.4rem;
+	}
+`
+
+const P = styled.p`
+	font-size: 1.2rem;
+	@media (min-width: 750px) {
+		font-size: 1.4rem;
+	}
+`
+
+const Label = styled.label`
+	font-weight: 600;
+	font-size: 1.2rem;
+	@media (min-width: 750px) {
+		font-size: 1.4rem;
+	}
+`
+
+const TextContainer = styled.div`
+	order: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding-left: 1.5rem;
+	@media (min-width: 750px) {
+		justify-content: flex-start;
+		align-items: center;
+		padding-left: 0;
+		order: -1;
+	}
+`
+
+const ImgContainer = styled.div`
+	order: -1;
+	@media (min-width: 750px) {
+		order: 1;
+		width: 80%;
+		margin: 0 auto;
+	}
+`

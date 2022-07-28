@@ -1,12 +1,11 @@
 import styled from "styled-components/macro"
+import { Content } from "../../components/utils"
 
 const Privacy = () => {
 	return (
-		<Main>
-			<Banner>
-				<Header>Top Privacy Policy - Your Privacy Rights</Header>
-			</Banner>
-			<Section>
+		<Content>
+			<Header>Top Privacy Policy - Your Privacy Rights</Header>
+			<p>
 				Personal Information we collect about you We collect and process
 				Personal Information about you or your devices from various sources
 				described below. Personal Information you provide to us This is Personal
@@ -245,33 +244,14 @@ const Privacy = () => {
 				prevent cyber or other suspected or alleged crime. With your consent. We
 				may also disclose Personal Information from or about you or your devices
 				with your permission obtained in accordance with applicable law.
-			</Section>
-		</Main>
+			</p>
+		</Content>
 	)
 }
 
 export default Privacy
 
-const Main = styled.main`
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-`
-
-const Section = styled.section`
-	width: min(1300px, 90vw);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-`
-const Banner = styled.div`
-	padding: 3rem 0;
-	margin-bottom: 3rem;
-	background-color: rgb(245, 245, 245);
-	width: min(1300px, 90vw);
-`
 const Header = styled.h1`
-	font-weight: 400;
-	margin-bottom: 3rem;
+	margin-bottom: 4.5rem;
+	font-size: 3.2rem;
 `

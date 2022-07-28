@@ -1,123 +1,57 @@
+import { useContext } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import { useQuery } from "react-query"
 import styled from "styled-components/macro"
+import { Button } from "@mantine/core"
+
+import AppContext from "../../hooks/AppContext"
 import {
-	getProduct,
 	getProductListing,
 	getRelatedProducts,
-} from "../../hooks/getData"
-import { useQuery, useMutation, queryClient } from "react-query"
-import { Link, useParams } from "react-router-dom"
-import { LoadingScreen } from "../../components/utils/Utils.component"
+	useProductDetails,
+} from "../../hooks/api"
+import { Content, LoadingScreen } from "../../components/utils"
 import Carousel from "../../components/carousel"
-import { useContext, useState } from "react"
-import AppContext from "../../hooks/AppContext"
-import { nanoid } from "nanoid"
-import { Button, TextInput, NativeSelect } from "@mantine/core"
-import { useForm } from "react-hook-form"
-import { sizeChart } from "../../hooks/constants"
-import { updateListing, deleteListing } from "../../hooks/createDocs"
+import Listings from "../../components/listings"
+import Image1 from "../../assets/icons/authenticated.svg"
+import Image2 from "../../assets/icons/deadstock.svg"
+import Image3 from "../../assets/icons/delivery.svg"
 
 const ProductDetails = () => {
-	const { urlKey } = useParams()
 	const {
 		preferences: { currency, sizePreference },
-		user,
+		uid,
 	} = useContext(AppContext)
-	const { data, isLoading, isError } = useQuery(
-		[`productDetails-${urlKey}`, urlKey],
-		() => getProduct(urlKey)
-	)
-	const { data: relatedProducts, isLoading: relatedProductLoading } = useQuery(
-		["relatedProducts", data?.shoe, data?.title],
+	const { urlKey } = useParams()
+	const navigate = useNavigate()
+	const { data, isLoading, isError } = useProductDetails(urlKey)
+	const {
+		data: relatedProducts,
+		isLoading: relatedProductLoading,
+		isError: relatedProductError,
+	} = useQuery(
+		[`relatedProducts-${urlKey}`, data?.shoe, data?.title],
 		() => getRelatedProducts(data?.shoe, data?.title),
 		{
 			enabled: !!data,
 		}
 	)
-	const uid = user?.uid //uid is undefined when you refresh
 	const {
 		data: listing,
 		isLoading: isListingLoading,
 		isError: isListingError,
 	} = useQuery(
-		[`productListings-${data?.object}`, data?.objectID, uid],
+		[`productListings-${urlKey}`, data?.objectID, uid],
 		() => getProductListing(data?.objectID, uid),
 		{
-			enabled: !!uid || !!data?.objectID,
+			enabled: !!uid && !!data?.objectID,
 		}
 	)
-	const {
-		handleSubmit,
-		register,
-		formState: { errors },
-	} = useForm()
 
-	const { mutateAsync: updateListingMutation } = useMutation(updateListing)
-
-	const sizesToDisplay = () => {
-		let newSizes
-		if (sizePreference === "EU") {
-			newSizes = sizeChart.map(size => size.sizeEU)
-		} else {
-			newSizes = sizeChart.map(size => size.sizeUS)
-		}
-		return newSizes
-	}
-
-	// call mutation which
-	// invalidates porfile and product
-
-	const formatPrice = sellingPrice => {
-		let priceUSD
-		if (currency.name === "USD") {
-			priceUSD = sellingPrice
-		} else if (currency.name === "EUR") {
-			priceUSD = sellingPrice * 1.05
-		} else {
-			priceUSD = sellingPrice * 1.22
-		}
-		return priceUSD
-	}
-	const formatSize = selectedSize => {
-		let sizeUS
-		let sizeEU
-		if (sizePreference === "US") {
-			sizeUS = selectedSize
-			sizeEU = sizeChart.find(size => size.sizeUS === sizeUS).sizeEU
-		} else {
-			sizeEU = selectedSize
-			sizeUS = sizeChart.find(size => size.sizeEU === sizeEU).sizeUS
-		}
-		return {
-			sizeUS,
-			sizeEU,
-		}
-	}
-
-	const { mutate: deleteListingMutation } = useMutation(deleteListing, {
-		onSuccess: () => {
-			queryClient.invalidateQueries("profile")
-			queryClient.invalidateQueries(`productDetails-${urlKey}`)
-		},
-	})
-	const [editMenu, setEditMenu] = useState(false)
-	const onSubmit = async (data, listing) => {
-		if (
-			data.sellingPrice === listing.price &&
-			data.selectedSize === listing.size
-		) {
-			return
-		}
-		const sizeInfo = formatSize(data.selectedSize)
-		const priceUSD = formatPrice(data.sellingPrice)
-		await updateListingMutation({
-			objectID: listing.objectID,
-			uid,
-			price: priceUSD,
-			sizeInfo,
-		})
-		queryClient.invalidateQueries("profile")
-		queryClient.invalidateQueries(`productDetails-${urlKey}`)
-		setEditMenu(false)
+	const formatReleaseDate = date => {
+		const arr = date.split("-")
+		const releaseDate = `${arr[2]}/${arr[1]}/${arr[0]}`
+		return releaseDate
 	}
 
 	if (isLoading)
@@ -126,178 +60,332 @@ const ProductDetails = () => {
 				<LoadingScreen />
 			</>
 		)
-	//error component that says error while fetching please reload
+
 	if (isError) return <div>Error, please try again</div>
 	return (
-		<main>
-			<Section>
+		<Content>
+			<BuyingSection>
 				<ProductDetailsImg>
-					<img src={data?.media.imageUrl} alt={data.title} />
+					<img src={data?.media.imageUrl} alt="product" />
 				</ProductDetailsImg>
+				<TextContainer>
+					<H1>{data.title}</H1>
+					<ShortDescription>
+						<PriceContainer>
+							<div>
+								<FlavorText fontSize="1.6rem">Lowest Ask</FlavorText>
+								<Price>
+									{currency.symbol}
+									{Math.trunc(data.market.lowestAsk * currency.rate)}
+								</Price>
+							</div>
+							<div>
+								<FlavorText fontSize="1.6rem">Highest Bid</FlavorText>
+								<Price>
+									{currency.symbol}
+									{Math.trunc(data.market.highestBid * currency.rate)}
+								</Price>
+							</div>
+							<div>
+								<FlavorText fontSize="1.6rem">Last Sale</FlavorText>
+								<Price>
+									{currency.symbol}
+									{Math.trunc(data.market.lastSale * currency.rate)}
+								</Price>
+							</div>
+						</PriceContainer>
+						<ButtonContainer>
+							<Button
+								onClick={() => navigate(`/buy/${urlKey}`)}
+								size="lg"
+								styles={{
+									root: {
+										borderRadius: "2px",
+										fontWeight: 600,
+									},
+									filled: {
+										backgroundColor: "#101010",
+										"&:hover": {
+											backgroundColor: "#101010",
+											opacity: 0.9,
+										},
+										"&:active": {
+											backgroundColor: "#101010",
+											opacity: 0.9,
+										},
+									},
+								}}
+								style={{
+									textTransform: "uppercase",
+								}}
+							>
+								Buy
+							</Button>
+							<Button
+								onClick={() => navigate(`/sell/${urlKey}`)}
+								size="lg"
+								variant="outline"
+								styles={{
+									root: {
+										borderRadius: "2px",
+									},
+									outline: {
+										color: "#101010",
+										borderColor: "#101010",
+									},
+									label: {
+										display: "flex !important",
+										gap: "5px !important",
+									},
+								}}
+								style={{
+									textTransform: "uppercase",
+								}}
+							>
+								Sell
+							</Button>
+						</ButtonContainer>
+					</ShortDescription>
+				</TextContainer>
+			</BuyingSection>
+			<DetailsSection>
 				<div>
-					<h1>{data.title}</h1>
-					<div>
-						<h3>Lowest Ask:</h3>
-						<p>
-							{currency.symbol}
-							{Math.floor(data.market.lowestAsk * currency.rate)}
-						</p>
-					</div>
-					<div>
-						<h3>Highest Bid:</h3>
-						<p>
-							{currency.symbol}
-							{Math.floor(data.market.highestBid * currency.rate)}
-						</p>
-					</div>
-					<div>
-						<h3>Last Sale:</h3>
-						<p>
-							{currency.symbol}
-							{Math.floor(data.market.lastSale * currency.rate)}
-						</p>
-					</div>
-					<p>{data.brand}</p>
-					<p>{data.condition}</p>
-					<p>{data.colorway}</p>
-					<Link to={`/buy/${urlKey}`}>
-						<button>BUY</button>
-					</Link>
-					<Link to={`/sell/${urlKey}`}>
-						<button>SELL</button>
-					</Link>
+					<FlavorText>Description</FlavorText>
+					<MainText
+						dangerouslySetInnerHTML={{ __html: `<p>${data.description}<p>` }}
+					></MainText>
 				</div>
-			</Section>
-			<Section2>
-				<h2>Details</h2>
-				<p>Category: {data.category}</p>
-				<p>Description: {data.description}</p>
-				<p>Year: {data.year}</p>
-				<p>Release Date: {data.releaseDate}</p>
-				<p>Retail Price: {data.retailPrice}</p>
-			</Section2>
-			<div>
-				{isListingLoading ? (
-					isListingError ? (
-						<div>Error loading listings</div>
-					) : (
-						<div>Loading</div>
-					)
-				) : isListingError ? (
-					<div>Error loading listings</div>
-				) : (
-					listing && (
-						<Section2>
-							<h4>You have 1 listing for this item</h4>
-							<Listing key={nanoid()}>
-								<div>
-									<img src={listing.thumbnail} alt={listing.title} />
-								</div>
-								<div>
-									<p>{listing.title}</p>
-									{editMenu ? (
-										<div>
-											<form
-												onSubmit={handleSubmit(data =>
-													onSubmit(data, {
-														price: Math.floor(listing.price * currency.rate),
-														size:
-															sizePreference === "EU"
-																? listing.sizeInfo.sizeEU
-																: listing.sizeInfo.sizeUS,
-														objectID: listing.objectID,
-														urlKey: listing.urlKey,
-													})
-												)}
-											>
-												<TextInput
-													defaultValue={Math.floor(
-														listing.price * currency.rate
-													)}
-													{...register("sellingPrice", {
-														required: true,
-														min: 20,
-														max: 10000,
-													})}
-												/>
-												<NativeSelect
-													data={sizesToDisplay()}
-													defaultValue={
-														sizePreference === "EU"
-															? listing.sizeInfo.sizeEU
-															: listing.sizeInfo.sizeUS
-													}
-													rightSection={
-														<InputRightSection>
-															{sizePreference}
-														</InputRightSection>
-													}
-													rightSectionWidth={50}
-													{...register("selectedSize", {
-														required: true,
-													})}
-												/>
-												<Button type="submit">Apply changes</Button>
-											</form>
-											<Button
-												onClick={() =>
-													deleteListingMutation({
-														objectID: listing.objectID,
-														uid,
-													})
-												}
-											>
-												Delete
-											</Button>
-											<Button onClick={() => setEditMenu(null)}>Cancel</Button>
-										</div>
-									) : (
-										<div>
-											<p>{Math.floor(listing.price * currency.rate)}</p>
-											<p>
-												{sizePreference === "EU"
-													? listing.sizeInfo.sizeEU
-													: listing.sizeInfo.sizeUS}
-											</p>
-											<Button onClick={() => setEditMenu(true)}>Edit</Button>
-										</div>
-									)}
-								</div>
-							</Listing>
-						</Section2>
-					)
-				)}
-			</div>
-			{!relatedProductLoading && (
-				<Section2>
-					<h2>Related Products</h2>
-					<Carousel items={relatedProducts} />
-				</Section2>
+				<DetailsGrid>
+					<div>
+						<FlavorText>Condition</FlavorText>
+						<MainText>{data.condition}</MainText>
+					</div>
+					<div>
+						<FlavorText>Colorway</FlavorText>
+						<MainText>{data.colorway}</MainText>
+					</div>
+					<div>
+						<FlavorText>Category</FlavorText>
+						<MainText> {data.category}</MainText>
+					</div>
+					<div>
+						<FlavorText>Gender</FlavorText>
+						<MainText>
+							{data.gender.charAt(0).toUpperCase() + data.gender.slice(1)}
+						</MainText>
+					</div>
+					<div>
+						<FlavorText>Retail Price</FlavorText>
+						<MainText>${data.retailPrice}</MainText>
+					</div>
+					<div>
+						<FlavorText>Year</FlavorText>
+						<MainText>{data.year}</MainText>
+					</div>
+					<div>
+						<FlavorText>Release Date</FlavorText>
+						<MainText>
+							{data.releaseDate ? formatReleaseDate(data.releaseDate) : "--"}
+						</MainText>
+					</div>
+				</DetailsGrid>
+			</DetailsSection>
+			<TrustSection>
+				<TrustItemWrapper>
+					<TrustImageContainer>
+						<Image src={Image1} alt="" />
+					</TrustImageContainer>
+					<TrustTextContainer>
+						<TrustHeading>Authenticated</TrustHeading>
+						<TrustText>
+							All items are 100% authentic. Each item is carefully inspected to
+							guarantee authenticity.
+						</TrustText>
+					</TrustTextContainer>
+				</TrustItemWrapper>
+				<TrustItemWrapper>
+					<TrustImageContainer>
+						<Image src={Image2} alt="" />
+					</TrustImageContainer>
+					<TrustTextContainer>
+						<TrustHeading>Brand New & Unused</TrustHeading>
+						<TrustText>
+							Every item is brand new, unused and in its original box.
+						</TrustText>
+					</TrustTextContainer>
+				</TrustItemWrapper>
+				<TrustItemWrapper>
+					<TrustImageContainer>
+						<Image src={Image3} alt="" />
+					</TrustImageContainer>
+					<TrustTextContainer>
+						<TrustHeading>Quick Delivery</TrustHeading>
+						<TrustText>
+							Once authenticated, most domestic items are delivered quickly and
+							securely with UPS. Deliveries outside of the UK are handled by DHL
+							Express.
+						</TrustText>
+					</TrustTextContainer>
+				</TrustItemWrapper>
+			</TrustSection>
+			{isListingLoading ? (
+				<div>Loading</div>
+			) : isListingError ? (
+				<div>Error loading listings</div>
+			) : (
+				listing && (
+					<ListingSection>
+						<H2>You have 1 listing for this item</H2>
+						<Listings listings={[listing]} productDetailsPage />
+					</ListingSection>
+				)
 			)}
-		</main>
+			{!relatedProductLoading &&
+				(relatedProductError ? (
+					<div>Error fetching related products</div>
+				) : (
+					<>
+						<H2>Related Products</H2>
+						<Carousel isProductDetails items={relatedProducts} />
+					</>
+				))}
+		</Content>
 	)
 }
 
 export default ProductDetails
 
-const Section = styled.section`
-	display: flex;
-`
-const Section2 = styled.section`
-	display: flex;
-	flex-direction: column;
+const FlavorText = styled.h4`
+	text-transform: uppercase;
+	letter-spacing: 0.1rem;
+	font-weight: 600;
+	font-size: ${({ fontSize }) => (fontSize ? fontSize : "1.2rem")};
 `
 
-const ProductDetailsImg = styled.div`
-	width: 400px;
-`
-const Listing = styled.div`
-	display: flex;
-	width: 750px;
-	height: 75px;
-	div {
-		display: flex;
-		gap: 10px;
+const TrustHeading = styled.h4`
+	text-transform: uppercase;
+	letter-spacing: 0.1rem;
+	font-weight: 600;
+	font-size: 1.4rem;
+	@media (min-width: 1000px) {
+		font-size: 1.8rem;
 	}
 `
-const InputRightSection = styled.div``
+
+const TrustText = styled.p`
+	font-size: 1.1rem;
+	@media (min-width: 1000px) {
+		font-size: 1.4rem;
+	}
+`
+
+const ListingSection = styled.section`
+	width: 100%;
+	margin-bottom: 2rem;
+`
+
+const H1 = styled.h1`
+	margin-bottom: 1.2rem;
+	font-size: 2.8rem;
+	@media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+		font-size: 2.1rem;
+	}
+`
+
+const H2 = styled.h2`
+	margin-bottom: 1.2rem;
+	font-size: 2.1rem;
+`
+
+const PriceContainer = styled.h4`
+	display: flex;
+	gap: 2rem;
+	padding-left: 3rem;
+`
+
+const Price = styled.h4`
+	font-family: "Mulish", sans-serif;
+	font-size: 2.1rem;
+`
+
+const BuyingSection = styled.section`
+	width: 100%;
+	display: grid;
+	grid-template-columns: 40% 60%;
+	margin-bottom: 2rem;
+	@media (max-width: 600px) {
+		grid-template-columns: 1fr;
+		grid-template-rows: repeat(2, 1fr);
+	}
+`
+
+const DetailsSection = styled.section`
+	width: 100%;
+	display: grid;
+	grid-template-columns: 70% 30%;
+	@media (max-width: 600px) {
+		grid-template-columns: 1fr;
+		grid-template-rows: repeat(2, 1fr);
+	}
+`
+const TrustSection = styled.section`
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 3rem;
+`
+
+const Image = styled.img`
+	width: 100px;
+`
+
+const ProductDetailsImg = styled.div``
+
+const ShortDescription = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	border: 1px solid black;
+	gap: 2rem;
+	padding: 2rem;
+`
+
+const DetailsGrid = styled.div``
+
+const ButtonContainer = styled.div`
+	display: flex;
+	gap: 2rem;
+`
+
+const TextContainer = styled.div``
+
+const TrustItemWrapper = styled.div`
+	display: grid;
+	max-width: 550px;
+	grid-template-columns: 1fr 4fr;
+	margin-bottom: 1rem;
+	@media (max-width: 800px) {
+		grid-template-columns: 1fr 5fr;
+	}
+`
+
+const TrustImageContainer = styled.div`
+	padding: 1rem 1rem 1rem 0;
+`
+
+const TrustTextContainer = styled.div`
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 1rem;
+	@media (max-width: 600px) {
+		gap: 0.5rem;
+	}
+`
+
+const P = styled.p`
+	font-size: 1.1rem;
+`
+const MainText = styled.p`
+	font-size: 1.4rem;
+`

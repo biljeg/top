@@ -1,3 +1,69 @@
+export const currencyList = [
+	{ name: "USD", rate: 1, symbol: "$" },
+	{ name: "EUR", rate: 0.95, symbol: "€" },
+	{ name: "GBP", rate: 0.82, symbol: "£" },
+]
+
+export const sizesList = ["US", "EU"]
+
+export const mostPopular = [
+	"Nike Dunk Low Retro White Black Panda (2021)",
+	"adidas Yeezy Boost 350 V2 Zebra",
+	"Jordan 1 Retro High OG Stage Haze",
+	"Nike Air Force 1 Low '07 White",
+	"Nike Air Max 1 Travis Scott Cactus Jack Baroque Brown",
+	"Jordan 1 Retro High White University Blue Black",
+	"Jordan 4 Retro Military Black",
+	"Jordan 11 Retro Cool Grey (2021)",
+	"Jordan 1 Retro High OG Rebellionaire",
+	"adidas Yeezy Foam RNNR Vermillion",
+	"Nike Dunk Low Essential Paisley Pack Orange (W)",
+	"adidas Yeezy Slide Onyx",
+]
+
+export const categoryFilters = [
+	{
+		value: "Air Jordan One",
+		label: "Air Jordan 1",
+	},
+	{
+		value: "Nike Dunk",
+		label: "Nike Dunk",
+	},
+	{
+		value: "adidas Yeezy",
+		label: "adidas Yeezy",
+	},
+	{
+		value: "Air Force One",
+		label: "Air Force 1",
+	},
+	{
+		value: "Nike Basketball Other",
+		label: "Nike Blazer",
+	},
+	{
+		value: "Air Jordan Four",
+		label: "Air Jordan 4",
+	},
+	{
+		value: "Air Jordan Three",
+		label: "Air Jordan 3",
+	},
+	{
+		value: "Air Max 1",
+		label: "Air Max 1",
+	},
+	{
+		value: "Air Jordan Eleven",
+		label: "Air Jordan 11",
+	},
+	{
+		value: "Nike SB SB Dunk Low",
+		label: "Nike SB Dunk",
+	},
+]
+
 export const sizeChart = [
 	{
 		sizeEU: "38.5",
