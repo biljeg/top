@@ -69,7 +69,9 @@ const ProductDetails = () => {
 					<img src={data?.media.imageUrl} alt="product" />
 				</ProductDetailsImg>
 				<TextContainer>
-					<H1>{data.title}</H1>
+					<H1Container>
+						<H1>{data.title}</H1>
+					</H1Container>
 					<ShortDescription>
 						<PriceContainer>
 							<div>
@@ -150,45 +152,45 @@ const ProductDetails = () => {
 			</BuyingSection>
 			<DetailsSection>
 				<div>
-					<FlavorText>Description</FlavorText>
+					<FlavorText style={{ marginBottom: "5px" }}>Description</FlavorText>
 					<MainText
 						dangerouslySetInnerHTML={{ __html: `<p>${data.description}<p>` }}
 					></MainText>
 				</div>
-				<DetailsGrid>
-					<div>
+				<DetailsContainer>
+					<DetailsWrapper>
 						<FlavorText>Condition</FlavorText>
 						<MainText>{data.condition}</MainText>
-					</div>
-					<div>
+					</DetailsWrapper>
+					<DetailsWrapper>
 						<FlavorText>Colorway</FlavorText>
 						<MainText>{data.colorway}</MainText>
-					</div>
-					<div>
+					</DetailsWrapper>
+					<DetailsWrapper>
 						<FlavorText>Category</FlavorText>
 						<MainText> {data.category}</MainText>
-					</div>
-					<div>
+					</DetailsWrapper>
+					<DetailsWrapper>
 						<FlavorText>Gender</FlavorText>
 						<MainText>
 							{data.gender.charAt(0).toUpperCase() + data.gender.slice(1)}
 						</MainText>
-					</div>
-					<div>
+					</DetailsWrapper>
+					<DetailsWrapper>
 						<FlavorText>Retail Price</FlavorText>
 						<MainText>${data.retailPrice}</MainText>
-					</div>
-					<div>
+					</DetailsWrapper>
+					<DetailsWrapper>
 						<FlavorText>Year</FlavorText>
 						<MainText>{data.year}</MainText>
-					</div>
-					<div>
+					</DetailsWrapper>
+					<DetailsWrapper>
 						<FlavorText>Release Date</FlavorText>
 						<MainText>
 							{data.releaseDate ? formatReleaseDate(data.releaseDate) : "--"}
 						</MainText>
-					</div>
-				</DetailsGrid>
+					</DetailsWrapper>
+				</DetailsContainer>
 			</DetailsSection>
 			<TrustSection>
 				<TrustItemWrapper>
@@ -315,7 +317,7 @@ const BuyingSection = styled.section`
 	margin-bottom: 2rem;
 	@media (max-width: 600px) {
 		grid-template-columns: 1fr;
-		grid-template-rows: repeat(2, 1fr);
+		grid-template-rows: 1fr 200px;
 	}
 `
 
@@ -323,6 +325,9 @@ const DetailsSection = styled.section`
 	width: 100%;
 	display: grid;
 	grid-template-columns: 70% 30%;
+	@media (max-width: 800px) {
+		margin-block: 2rem;
+	}
 	@media (max-width: 600px) {
 		grid-template-columns: 1fr;
 		grid-template-rows: repeat(2, 1fr);
@@ -341,23 +346,47 @@ const Image = styled.img`
 
 const ProductDetailsImg = styled.div``
 
+const H1Container = styled.div`
+	display: flex;
+	justify-content: center;
+`
+
+const DetailsContainer = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	margin-left: 1rem;
+	@media (max-width: 600px) {
+		margin-top: 2rem;
+		margin-left: 0;
+	}
+`
+
+const DetailsWrapper = styled.div`
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+`
+
 const ShortDescription = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	border: 1px solid black;
 	gap: 2rem;
 	padding: 2rem;
 `
-
-const DetailsGrid = styled.div``
 
 const ButtonContainer = styled.div`
 	display: flex;
 	gap: 2rem;
 `
 
-const TextContainer = styled.div``
+const TextContainer = styled.div`
+	@media (max-width: 800px) {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+`
 
 const TrustItemWrapper = styled.div`
 	display: grid;
